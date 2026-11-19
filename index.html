@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Эрудит — Telegram Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <style>
+    :root {
+      --bg: var(--tg-theme-bg-color, #18222d);
+      --sec-bg: var(--tg-theme-secondary-bg-color, #22303f);
+      --text: var(--tg-theme-text-color, #ffffff);
+      --hint: var(--tg-theme-hint-color, #8e9ba8);
+      --btn: var(--tg-theme-button-color, #3390ec);
+      --btn-text: var(--tg-theme-button-text-color, #ffffff);
+      --tile-bg: #f5e6c8;
+      --tile-text: #2b1d0e;
+      --tile-border: #d4b98c;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+    body {
+      margin: 0;
+      padding: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .screen { width: 100%; max-width: 480px; display: none; flex-direction: column; gap: 10px; }
+    .screen.active { display: flex; }
+
+    /* Лобби */
+    .card {
+      background: var(--sec-bg);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    h1 { margin: 0; font-size: 22px; text-align: center; }
+    p { margin: 0; font-size: 14px; color: var(--hint); text-align: center; }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      text-align: center;
+      text-transform: uppercase;
+      outline: none;
+    }
+
+    button {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      background: var(--btn);
+      color: var(--btn-text);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:active { opacity: 0.8; }
+    button.secondary { background: rgba(255,255,255,0.1); color: var(--text); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Шапка игры */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--sec-bg);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+    .player-box { display: flex; flex-direction: column; }
+    .player-box.active-turn { color: #4ade80; font-weight: bold; }
+    .bag-info { font-size: 12px; color: var(--hint); text-align: center; }
+
+    /* Игровое поле 15x15 */
+    .board-wrap {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #141c24;
+      padding: 3px;
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      grid-template-rows: repeat(15, 1fr);
+      gap: 2px;
+    }
+
+    .cell {
+      background: #283544;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.75);
+      position: relative;
+      cursor: pointer;
+    }
+
+    /* Бонусные клетки */
+    .cell.tw { background: #c0392b; color: #fff; } /* 3С */
+    .cell.dw { background: #d35400; color: #fff; } /* 2С */
+    .cell.tl { background: #2980b9; color: #fff; } /* 3Б */
+    .cell.dl { background: #16a085; color: #fff; } /* 2Б */
+    .cell.center { background: #8e44ad; color: #fff; font-size: 12px; }
+
+    /* Фишка на поле и в руке */
+    .tile {
+      width: 100%;
+      height: 100%;
+      background: var(--tile-bg);
+      color: var(--tile-text);
+      border-radius: 3px;
+      border-bottom: 2px solid var(--tile-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      position: relative;
+    }
+    .tile.temp {
+      box-shadow: 0 0 0 2px #4ade80;
+    }
+    .tile .pts {
+      position: absolute;
+      bottom: 1px;
+      right: 2px;
+      font-size: 7px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    /* Рука игрока */
+    .rack {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px;
+      background: var(--sec-bg);
+      border-radius: 12px;
+      min-height: 56px;
+    }
+    .rack .tile {
+      width: 40px;
+      height: 42px;
+      font-size: 20px;
+      border-radius: 6px;
+      border-bottom-width: 3px;
+      cursor: pointer;
+    }
+    .rack .tile .pts { font-size: 10px; bottom: 2px; right: 4px; }
+    .rack .tile.selected {
+      transform: translateY(-6px);
+      box-shadow: 0 4px 10px rgba(74, 222, 128, 0.5);
+      border: 2px solid #4ade80;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .controls button { padding: 10px 6px; font-size: 13px; }
+
+    .status-msg {
+      text-align: center;
+      font-size: 13px;
+      min-height: 18px;
+      color: #facc15;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ЭКРАН 1: ЛОББИ -->
+  <div id="lobby" class="screen active">
+    <div class="card">
+      <h1>🧩 Эрудит</h1>
+      <p>Мультиплеерная игра в слова для Telegram</p>
+      <button id="btn-create">Создать новую игру</button>
+      <div id="room-created" style="display:none; flex-direction:column; gap:8px; margin-top:6px;">
+        <p>Код комнаты: <strong id="my-room-code" style="color:#fff; font-size:18px;">...</strong></p>
+        <button id="btn-share" class="secondary">Пригласить друга в Telegram</button>
+        <p style="font-size:12px;">Ждём подключения второго игрока...</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <p>Или присоединитесь к другу по коду:</p>
+      <input type="text" id="join-code" placeholder="ВВЕДИТЕ КОД" maxlength="8" />
+      <button id="btn-join" class="secondary">Войти в игру</button>
+    </div>
+    <div id="lobby-status" class="status-msg"></div>
+  </div>
+
+  <!-- ЭКРАН 2: ИГРА -->
+  <div id="game" class="screen">
+    <div class="header">
+      <div id="p1-box" class="player-box">
+        <span id="p1-name">Вы</span>
+        <span id="p1-score">0 очк.</span>
+      </div>
+      <div class="bag-info">
+        В мешке: <span id="bag-count">104</span><br>
+        <span id="turn-indicator">Загрузка...</span>
+      </div>
+      <div id="p2-box" class="player-box" style="text-align:right;">
+        <span id="p2-name">Соперник</span>
+        <span id="p2-score">0 очк.</span>
+      </div>
+    </div>
+
+    <div id="board" class="board-wrap"></div>
+    <div id="game-status" class="status-msg"></div>
+
+    <div id="rack" class="rack"></div>
+
+    <div class="controls">
+      <button id="btn-recall" class="secondary">Забрать</button>
+      <button id="btn-pass" class="secondary">Пас / Сброс</button>
+      <button id="btn-submit">Ход ✓</button>
+    </div>
+  </div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+}
+
+// Русские буквы: [буква, количество, очки]
+const LETTERS_DIST = [
+  ['А', 8, 1], ['Б', 2, 3], ['В', 4, 1], ['Г', 2, 3], ['Д', 4, 2],
+  ['Е', 8, 1], ['Ё', 1, 3], ['Ж', 1, 5], ['З', 2, 5], ['И', 5, 1],
+  ['Й', 1, 4], ['К', 4, 2], ['Л', 4, 2], ['М', 3, 2], ['Н', 5, 1],
+  ['О', 10, 1], ['П', 4, 2], ['Р', 5, 1], ['С', 5, 1], ['Т', 5, 1],
+  ['У', 4, 2], ['Ф', 1, 10], ['Х', 1, 5], ['Ц', 1, 5], ['Ч', 1, 5],
+  ['Ш', 1, 8], ['Щ', 1, 10], ['Ъ', 1, 10], ['Ы', 2, 4], ['Ь', 2, 3],
+  ['Э', 1, 8], ['Ю', 1, 8], ['Я', 2, 3], ['*', 2, 0]
+];
+
+const POINTS_MAP = Object.fromEntries(LETTERS_DIST.map(x => [x[0], x[2]]));
+
+// Умная симметричная раскладка бонусов 15x15
+const BONUS_MAP = (() => {
+  const m = Array.from({ length: 15 }, () => Array(15).fill(''));
+  const setSym = (r, c, type) => {
+    m[r][c] = m[r][14-c] = m[14-r][c] = m[14-r][14-c] = type;
+  };
+  // 3x к слову (TW)
+  [[0,0],[0,7],[7,0]].forEach(([r,c]) => setSym(r,c,'tw'));
+  // 2x к слову (DW)
+  [[1,1],[2,2],[3,3],[4,4]].forEach(([r,c]) => setSym(r,c,'dw'));
+  // 3x к букве (TL)
+  [[1,5],[5,1],[5,5]].forEach(([r,c]) => setSym(r,c,'tl'));
+  // 2x к букве (DL)
+  [[0,3],[3,0],[2,6],[6,2],[3,7],[7,3],[6,6]].forEach(([r,c]) => setSym(r,c,'dl'));
+  m[7][7] = 'center';
+  return m;
+})();
+
+const BONUS_LABELS = { tw: '3С', dw: '2С', tl: '3Б', dl: '2Б', center: '★' };
+
+// Словарь (опционально загружается из words.txt)
+let dictionary = null;
+fetch('words.txt')
+  .then(r => r.ok ? r.text() : null)
+  .then(txt => {
+    if (txt) {
+      dictionary = new Set(txt.split(/\r?\n/).map(w => w.trim().toUpperCase()).filter(Boolean));
+      console.log('Словарь загружен:', dictionary.size);
+    }
+  }).catch(() => {});
+
+// Состояние игры
+let peer = null;
+let conn = null;
+let isHost = false;
+let myName = tg?.initDataUnsafe?.user?.first_name || 'Игрок';
+let oppName = 'Соперник';
+
+let state = {
+  board: Array.from({ length: 15 }, () => Array(15).fill(null)), // { letter, pts }
+  bag: [],
+  scores: [0, 0], // [host, guest]
+  turn: 0, // 0 = host, 1 = guest
+  racks: [[], []],
+  firstMoveDone: false
+};
+
+let tempPlaced = []; // [{ r, c, letter, pts, rackIdx }]
+let selectedRackIdx = null;
+
+// --- МУЛЬТИПЛЕЕР (PeerJS) ---
+function genCode() {
+  return Math.random().toString(36).substring(2, 7).toUpperCase();
+}
+
+document.getElementById('btn-create').onclick = () => {
+  const code = genCode();
+  isHost = true;
+  document.getElementById('lobby-status').textContent = 'Подключение к серверу...';
+  peer = new Peer('ERUDIT_' + code);
+
+  peer.on('open', () => {
+    document.getElementById('lobby-status').textContent = '';
+    document.getElementById('room-created').style.display = 'flex';
+    document.getElementById('my-room-code').textContent = code;
+  });
+
+  peer.on('connection', (c) => {
+    conn = c;
+    setupConnection();
+  });
+
+  peer.on('error', (err) => {
+    document.getElementById('lobby-status').textContent = 'Ошибка: ' + err.type;
+  });
+};
+
+document.getElementById('btn-share').onclick = () => {
+  const code = document.getElementById('my-room-code').textContent;
+  const text = `Го сыграем в Эрудит! Мой код комнаты: ${code}`;
+  if (tg) {
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(text)}`);
+  } else {
+    navigator.clipboard?.writeText(code);
+    alert('Код скопирован: ' + code);
+  }
+};
+
+document.getElementById('btn-join').onclick = () => {
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  if (!code) return;
+  isHost = false;
+  document.getElementById('lobby-status').textContent = 'Подключение к комнате...';
+  peer = new Peer();
+  peer.on('open', () => {
+    conn = peer.connect('ERUDIT_' + code);
+    setupConnection();
+  });
+  peer.on('error', () => {
+    document.getElementById('lobby-status').textContent = 'Комната не найдена или ошибка сети';
+  });
+};
+
+function setupConnection() {
+  conn.on('open', () => {
+    conn.send({ type: 'HELLO', name: myName });
+    if (isHost) {
+      initNewGame();
+      conn.send({ type: 'STATE', state });
+      startGameUI();
+    }
+  });
+
+  conn.on('data', (data) => {
+    if (data.type = 'HELLO') {
+      oppName = data.name;
+      updateNames();
+    } else if (data.type = 'STATE') {
+      state = data.state;
+      tempPlaced = [];
+      selectedRackIdx = null;
+      startGameUI();
+      render();
+    }
+  });
+
+  conn.on('close', () => {
+    document.getElementById('game-status').textContent = 'Соперник отключился!';
+  });
+}
+
+// --- ЛОГИКА ИГРЫ ---
+function initNewGame() {
+  const bag = [];
+  LETTERS_DIST.forEach(([l, count]) => {
+    for (let i = 0; i < count; i++) bag.push(l);
+  });
+  for (let i = bag.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [bag[i], bag[j]] = [bag[j], bag[i]];
+  }
+  state.bag = bag;
+  state.racks[0] = state.bag.splice(0, 7);
+  state.racks[1] = state.bag.splice(0, 7);
+  state.turn = 0;
+  state.scores = [0, 0];
+  state.firstMoveDone = false;
+}
+
+function startGameUI() {
+  document.getElementById('lobby').classList.remove('active');
+  document.getElementById('game').classList.add('active');
+  updateNames();
+  render();
+}
+
+function updateNames() {
+  document.getElementById('p1-name').textContent = isHost ? myName : oppName;
+  document.getElementById('p2-name').textContent = isHost ? oppName : myName;
+}
+
+function isMyTurn() {
+  return (isHost && state.turn =** 0) || (!isHost && state.turn **= 1);
+}
+
+function render() {
+  const myIdx = isHost ? 0 : 1;
+  document.getElementById('p1-score').textContent = state.scores[0] + ' очк.';
+  document.getElementById('p2-score').textContent = state.scores[1] + ' очк.';
+  document.getElementById('bag-count').textContent = state.bag.length;
+
+  document.getElementById('p1-box').classList.toggle('active-turn', state.turn = 0);
+  document.getElementById('p2-box').classList.toggle('active-turn', state.turn = 1);
+  document.getElementById('turn-indicator').textContent = isMyTurn() ? 'Ваш ход!' : 'Ход соперника';
+
+  // Поле
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML = '';
+  for (let r = 0; r < 15; r++) {
+    for (let c = 0; c < 15; c++) {
+      const cell = document.createElement('div');
+      const bonus = BONUS_MAP[r][c];
+      cell.className = 'cell ' + bonus;
+
+      const fixed = state.board[r][c];
+      const temp = tempPlaced.find(t => t.r =** r && t.c **= c);
+
+      if (fixed) {
+        cell.appendChild(createTileEl(fixed.letter, fixed.pts, false));
+      } else if (temp) {
+        const tEl = createTileEl(temp.letter, temp.pts, true);
+        tEl.onclick = () => removeTempTile(r, c);
+        cell.appendChild(tEl);
+      } else {
+        cell.textContent = BONUS_LABELS[bonus] || '';
+        cell.onclick = () => placeTileOnBoard(r, c);
+      }
+      boardEl.appendChild(cell);
+    }
+  }
+
+  // Рука
+  const rackEl = document.getElementById('rack');
+  rackEl.innerHTML = '';
+  const myRack = state.racks[myIdx];
+  myRack.forEach((letter, idx) => {
+    if (tempPlaced.some(t => t.rackIdx = idx)) return;
+    const tEl = createTileEl(letter, POINTS_MAP[letter], false);
+    if (selectedRackIdx = idx) tEl.classList.add('selected');
+    tEl.onclick = () => {
+      if (!isMyTurn()) return;
+      selectedRackIdx = (selectedRackIdx = idx) ? null : idx;
+      render();
+    };
+    rackEl.appendChild(tEl);
+  });
+
+  document.getElementById('btn-submit').disabled = !isMyTurn() || tempPlaced.length = 0;
+  document.getElementById('btn-pass').disabled = !isMyTurn();
+  document.getElementById('btn-recall').disabled = tempPlaced.length = 0;
+}
+
+function createTileEl(letter, pts, isTemp) {
+  const el = document.createElement('div');
+  el.className = 'tile' + (isTemp ? ' temp' : '');
+  el.textContent = letter;
+  const p = document.createElement('span');
+  p.className = 'pts';
+  p.textContent = pts;
+  el.appendChild(p);
+  return el;
+}
+
+function placeTileOnBoard(r, c) {
+  if (!isMyTurn() || selectedRackIdx = null) return;
+  const myIdx = isHost ? 0 : 1;
+  let letter = state.racks[myIdx][selectedRackIdx];
+  let pts = POINTS_MAP[letter];
+
+  if (letter = '*') {
+    const custom = prompt('Введите любую русскую букву для джокера:')?.trim().toUpperCase();
+    if (!custom || !/^[А-ЯЁ]$/.test(custom)) return;
+    letter = custom;
+    pts = 0;
+  }
+
+  tempPlaced.push({ r, c, letter, pts, rackIdx: selectedRackIdx });
+  selectedRackIdx = null;
+  document.getElementById('game-status').textContent = '';
+  render();
+}
+
+function removeTempTile(r, c) {
+  tempPlaced = tempPlaced.filter(t => !(t.r =** r && t.c **= c));
+  render();
+}
+
+document.getElementById('btn-recall').onclick = () => {
+  tempPlaced = [];
+  selectedRackIdx = null;
+  render();
+};
+
+document.getElementById('btn-pass').onclick = () => {
+  if (!isMyTurn()) return;
+  tempPlaced = [];
+  state.turn = 1 - state.turn;
+  conn.send({ type: 'STATE', state });
+  render();
+};
+
+document.getElementById('btn-submit').onclick = () => {
+  if (!isMyTurn() || tempPlaced.length = 0) return;
+  const errEl = document.getElementById('game-status');
+
+  // 1. Проверка: в одну линию
+  const sameRow = tempPlaced.every(t => t.r = tempPlaced[0].r);
+  const sameCol = tempPlaced.every(t => t.c = tempPlaced[0].c);
+  if (!sameRow && !sameCol) {
+    errEl.textContent = 'Буквы должны стоять в одну линию!';
+    return;
+  }
+
+  // 2. Первый ход через центр (7,7)
+  if (!state.firstMoveDone) {
+    if (!tempPlaced.some(t => t.r =** 7 && t.c **= 7)) {
+      errEl.textContent = 'Первый ход должен проходить через ★ (центр)!';
+      return;
+    }
+    if (tempPlaced.length < 2) {
+      errEl.textContent = 'Первое слово минимум из 2 букв!';
+      return;
+    }
+  } else {
+    // Проверка соприкосновения с существующими буквами
+    const touches = tempPlaced.some(({ r, c }) => {
+      return [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].some(([nr, nc]) =>
+        nr >= 0 && nr < 15 && nc >= 0 && nc < 15 && state.board[nr][nc] ! null
+      );
+    });
+    if (!touches) {
+      errEl.textContent = 'Слово должно примыкать к буквам на поле!';
+      return;
+    }
+  }
+
+  // Подсчет очков и проверка слов
+  const getTile = (r, c) => state.board[r][c] || tempPlaced.find(t => t.r =** r && t.c **= c);
+  let totalScore = 0;
+  const formedWords = [];
+
+  const calcLine = (r, c, dr, dc) => {
+    while (r - dr >= 0 && c - dc >= 0 && getTile(r - dr, c - dc)) { r -= dr; c -= dc; }
+    let word = '';
+    let wordPts = 0;
+    let wordMult = 1;
+    let len = 0;
+    while (r < 15 && c < 15 && getTile(r, c)) {
+      const t = getTile(r, c);
+      const isNew = tempPlaced.some(x => x.r =** r && x.c **= c);
+      let lPts = t.pts;
+      if (isNew) {
+        const b = BONUS_MAP[r][c];
+        if (b = 'dl') lPts *= 2;
+        if (b = 'tl') lPts *= 3;
+        if (b =** 'dw' || b **= 'center') wordMult *= 2;
+        if (b = 'tw') wordMult *= 3;
+      }
+      word += t.letter;
+      wordPts += lPts;
+      len++;
+      r += dr; c += dc;
+    }
+    if (len > 1) {
+      formedWords.push(word);
+      totalScore += wordPts * wordMult;
+    }
+  };
+
+  if (sameRow) calcLine(tempPlaced[0].r, tempPlaced[0].c, 0, 1);
+  if (sameCol && !sameRow) calcLine(tempPlaced[0].r, tempPlaced[0].c, 1, 0);
+  tempPlaced.forEach(t => {
+    if (sameRow) calcLine(t.r, t.c, 1, 0);
+    else calcLine(t.r, t.c, 0, 1);
+  });
+
+  if (dictionary) {
+    const invalid = formedWords.find(w => !dictionary.has(w));
+    if (invalid) {
+      errEl.textContent = `Слова "${invalid}" нет в словаре!`;
+      return;
+    }
+  }
+
+  if (tempPlaced.length = 7) totalScore += 15; // Бонус за все 7 букв
+
+  // Применяем ход
+  const myIdx = isHost ? 0 : 1;
+  tempPlaced.forEach(t => {
+    state.board[t.r][t.c] = { letter: t.letter, pts: t.pts };
+  });
+
+  // Убираем использованные буквы и добираем новые
+  const usedIndices = tempPlaced.map(t => t.rackIdx).sort((a, b) => b - a);
+  usedIndices.forEach(idx => state.racks[myIdx].splice(idx, 1));
+  while (state.racks[myIdx].length < 7 && state.bag.length > 0) {
+    state.racks[myIdx].push(state.bag.shift());
+  }
+
+  state.scores[myIdx] += totalScore;
+  state.firstMoveDone = true;
+  state.turn = 1 - state.turn;
+  tempPlaced = [];
+
+  conn.send({ type: 'STATE', state });
+  render();
+};
+</script>
+</body>
+</html>
