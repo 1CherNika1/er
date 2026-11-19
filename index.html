@@ -18,211 +18,94 @@
       --tile-text: #2b1d0e;
       --tile-border: #d4b98c;
     }
-
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-
     body {
-      margin: 0;
-      padding: 8px;
+      margin: 0; padding: 8px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      overflow-x: hidden;
+      background: var(--bg); color: var(--text);
+      display: flex; flex-direction: column; align-items: center;
+      min-height: 100vh; overflow-x: hidden;
     }
-
     .screen { width: 100%; max-width: 480px; display: none; flex-direction: column; gap: 10px; }
     .screen.active { display: flex; }
-
     .card {
-      background: var(--sec-bg);
-      border-radius: 14px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      background: var(--sec-bg); border-radius: 14px; padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-
     h1 { margin: 0; font-size: 22px; text-align: center; }
     p { margin: 0; font-size: 14px; color: var(--hint); text-align: center; }
-
     input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.15);
-      background: var(--bg);
-      color: var(--text);
-      font-size: 16px;
-      text-align: center;
-      text-transform: uppercase;
-      outline: none;
+      width: 100%; padding: 12px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.15); background: var(--bg);
+      color: var(--text); font-size: 16px; text-align: center;
+      text-transform: uppercase; outline: none;
     }
-
     button {
-      padding: 12px 16px;
-      border: none;
-      border-radius: 10px;
-      background: var(--btn);
-      color: var(--btn-text);
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s;
+      padding: 12px 16px; border: none; border-radius: 10px;
+      background: var(--btn); color: var(--btn-text);
+      font-size: 15px; font-weight: 600; cursor: pointer;
     }
     button:active { opacity: 0.8; }
     button.secondary { background: rgba(255,255,255,0.1); color: var(--text); }
     button.bot-btn { background: #27ae60; color: #fff; }
     button:disabled { opacity: 0.4; cursor: not-allowed; }
-
     .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--sec-bg);
-      padding: 8px 12px;
-      border-radius: 12px;
-      font-size: 13px;
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--sec-bg); padding: 8px 12px; border-radius: 12px; font-size: 13px;
     }
     .player-box { display: flex; flex-direction: column; }
     .player-box.active-turn { color: #4ade80; font-weight: bold; }
     .bag-info { font-size: 12px; color: var(--hint); text-align: center; }
-
     .board-wrap {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background: #141c24;
-      padding: 3px;
-      border-radius: 8px;
-      display: grid;
-      grid-template-columns: repeat(15, 1fr);
-      grid-template-rows: repeat(15, 1fr);
-      gap: 2px;
+      width: 100%; aspect-ratio: 1 / 1; background: #141c24; padding: 3px;
+      border-radius: 8px; display: grid;
+      grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr); gap: 2px;
     }
-
     .cell {
-      background: #283544;
-      border-radius: 3px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 8px;
-      font-weight: 700;
-      color: rgba(255,255,255,0.75);
-      position: relative;
-      cursor: pointer;
+      background: #283544; border-radius: 3px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 700; color: rgba(255,255,255,0.75);
+      position: relative; cursor: pointer;
     }
-
     .cell.tw { background: #c0392b; color: #fff; }
     .cell.dw { background: #d35400; color: #fff; }
     .cell.tl { background: #2980b9; color: #fff; }
     .cell.dl { background: #16a085; color: #fff; }
     .cell.center { background: #8e44ad; color: #fff; font-size: 12px; }
-
     .tile {
-      width: 100%;
-      height: 100%;
-      background: var(--tile-bg);
-      color: var(--tile-text);
-      border-radius: 3px;
-      border-bottom: 2px solid var(--tile-border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 800;
-      position: relative;
+      width: 100%; height: 100%; background: var(--tile-bg); color: var(--tile-text);
+      border-radius: 3px; border-bottom: 2px solid var(--tile-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; position: relative;
     }
     .tile.temp { box-shadow: 0 0 0 2px #4ade80; }
-    .tile .pts {
-      position: absolute;
-      bottom: 1px;
-      right: 2px;
-      font-size: 7px;
-      font-weight: 600;
-      line-height: 1;
-    }
-
+    .tile .pts { position: absolute; bottom: 1px; right: 2px; font-size: 7px; font-weight: 600; line-height: 1; }
     .rack {
-      display: flex;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px;
-      background: var(--sec-bg);
-      border-radius: 12px;
-      min-height: 56px;
+      display: flex; justify-content: center; gap: 6px; padding: 8px;
+      background: var(--sec-bg); border-radius: 12px; min-height: 56px;
     }
-    .rack .tile {
-      width: 40px;
-      height: 42px;
-      font-size: 20px;
-      border-radius: 6px;
-      border-bottom-width: 3px;
-      cursor: pointer;
-    }
+    .rack .tile { width: 40px; height: 42px; font-size: 20px; border-radius: 6px; border-bottom-width: 3px; cursor: pointer; }
     .rack .tile .pts { font-size: 10px; bottom: 2px; right: 4px; }
-    .rack .tile.selected {
-      transform: translateY(-6px);
-      box-shadow: 0 4px 10px rgba(74, 222, 128, 0.5);
-      border: 2px solid #4ade80;
-    }
-
-    .controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-    }
+    .rack .tile.selected { transform: translateY(-6px); box-shadow: 0 4px 10px rgba(74,222,128,0.5); border: 2px solid #4ade80; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
     .controls button { padding: 10px 6px; font-size: 13px; }
-
-    .status-msg {
-      text-align: center;
-      font-size: 13px;
-      min-height: 18px;
-      color: #facc15;
-    }
-
-    /* Модалка выбора буквы для джокера */
+    .status-msg { text-align: center; font-size: 13px; min-height: 18px; color: #facc15; }
     .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      padding: 16px;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px;
     }
     .modal.active { display: flex; }
     .modal-box {
-      background: var(--sec-bg);
-      border-radius: 14px;
-      padding: 14px;
-      max-width: 340px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      background: var(--sec-bg); border-radius: 14px; padding: 14px;
+      max-width: 340px; width: 100%; display: flex; flex-direction: column; gap: 10px;
     }
-    .alpha-grid {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 6px;
-    }
-    .alpha-grid button {
-      padding: 8px 0;
-      font-size: 15px;
-      background: var(--tile-bg);
-      color: var(--tile-text);
-    }
+    .alpha-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+    .alpha-grid button { padding: 8px 0; font-size: 15px; background: var(--tile-bg); color: var(--tile-text); }
   </style>
 </head>
 <body>
 
-  <!-- ЭКРАН 1: ЛОББИ -->
   <div id="lobby" class="screen active">
     <div class="card">
       <h1>🧩 Эрудит</h1>
@@ -235,7 +118,6 @@
         <p style="font-size:12px;">Ждём подключения второго игрока...</p>
       </div>
     </div>
-
     <div class="card">
       <p>Или присоединитесь к другу по коду:</p>
       <input type="text" id="join-code" placeholder="ВВЕДИТЕ КОД" maxlength="8" />
@@ -244,27 +126,15 @@
     <div id="lobby-status" class="status-msg"></div>
   </div>
 
-  <!-- ЭКРАН 2: ИГРА -->
   <div id="game" class="screen">
     <div class="header">
-      <div id="p1-box" class="player-box">
-        <span id="p1-name">Вы</span>
-        <span id="p1-score">0 очк.</span>
-      </div>
-      <div class="bag-info">
-        В мешке: <span id="bag-count">104</span><br>
-        <span id="turn-indicator">Загрузка...</span>
-      </div>
-      <div id="p2-box" class="player-box" style="text-align:right;">
-        <span id="p2-name">Соперник</span>
-        <span id="p2-score">0 очк.</span>
-      </div>
+      <div id="p1-box" class="player-box"><span id="p1-name">Вы</span><span id="p1-score">0 очк.</span></div>
+      <div class="bag-info">В мешке: <span id="bag-count">104</span><br><span id="turn-indicator">Ваш ход</span></div>
+      <div id="p2-box" class="player-box" style="text-align:right;"><span id="p2-name">Соперник</span><span id="p2-score">0 очк.</span></div>
     </div>
-
     <div id="board" class="board-wrap"></div>
     <div id="game-status" class="status-msg"></div>
     <div id="rack" class="rack"></div>
-
     <div class="controls">
       <button id="btn-recall" class="secondary">Забрать</button>
       <button id="btn-pass" class="secondary">Пас</button>
@@ -272,7 +142,6 @@
     </div>
   </div>
 
-  <!-- МОДАЛКА ДЛЯ ДЖОКЕРА (*) -->
   <div id="joker-modal" class="modal">
     <div class="modal-box">
       <p style="color:#fff; font-weight:600;">Выберите букву для звёздочки (*)</p>
@@ -285,18 +154,15 @@ const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
 const LETTERS_DIST = [
-  ['А', 8, 1], ['Б', 2, 3], ['В', 4, 1], ['Г', 2, 3], ['Д', 4, 2],
-  ['Е', 8, 1], ['Ё', 1, 3], ['Ж', 1, 5], ['З', 2, 5], ['И', 5, 1],
-  ['Й', 1, 4], ['К', 4, 2], ['Л', 4, 2], ['М', 3, 2], ['Н', 5, 1],
-  ['О', 10, 1], ['П', 4, 2], ['Р', 5, 1], ['С', 5, 1], ['Т', 5, 1],
-  ['У', 4, 2], ['Ф', 1, 10], ['Х', 1, 5], ['Ц', 1, 5], ['Ч', 1, 5],
-  ['Ш', 1, 8], ['Щ', 1, 10], ['Ъ', 1, 10], ['Ы', 2, 4], ['Ь', 2, 3],
-  ['Э', 1, 8], ['Ю', 1, 8], ['Я', 2, 3], ['*', 2, 0]
+  ['А',8,1],['Б',2,3],['В',4,1],['Г',2,3],['Д',4,2],['Е',8,1],['Ё',1,3],['Ж',1,5],
+  ['З',2,5],['И',5,1],['Й',1,4],['К',4,2],['Л',4,2],['М',3,2],['Н',5,1],['О',10,1],
+  ['П',4,2],['Р',5,1],['С',5,1],['Т',5,1],['У',4,2],['Ф',1,10],['Х',1,5],['Ц',1,5],
+  ['Ч',1,5],['Ш',1,8],['Щ',1,10],['Ъ',1,10],['Ы',2,4],['Ь',2,3],['Э',1,8],['Ю',1,8],
+  ['Я',2,3],['*',2,0]
 ];
 const POINTS_MAP = Object.fromEntries(LETTERS_DIST.map(x => [x[0], x[2]]));
 const ALPHABET = LETTERS_DIST.map(x => x[0]).filter(l => l ! '*');
 
-// Базовый мини-словарь для бота, если words.txt ещё не загружен
 const FALLBACK_WORDS = [
   'ДОМ','КОТ','СОК','ЛЕС','МИР','СОН','НОС','РОТ','ГЛАЗ','РУКА','НОГА','СТОЛ','СТУЛ','ОКНО','ДВЕРЬ',
   'ВОДА','ОГОНЬ','ЗЕМЛЯ','НЕБО','СОЛНЦЕ','ЛУНА','ЗВЕЗДА','РЕКА','МОРЕ','ГОРА','ПОЛЕ','ТРАВА','ЦВЕТОК',
@@ -304,508 +170,470 @@ const FALLBACK_WORDS = [
   'МАСЛО','МОЛОКО','ЧАЙ','КОФЕ','САХАР','СОЛЬ','МЯСО','СУП','КАША','ЯБЛОКО','ГРУША','СЛИВА','АРБУЗ',
   'КНИГА','ЛИСТ','БУКВА','СЛОВО','ЗВУК','ПЕСНЯ','МУЗЫКА','КИНО','ТЕАТР','ИГРА','МЯЧ','ШАР','КУБ',
   'КРУГ','УГОЛ','ТОЧКА','ЛИНИЯ','ЦВЕТ','СВЕТ','ТЕНЬ','ДЕНЬ','НОЧЬ','УТРО','ВЕЧЕР','ЧАС','ГОД','ВЕК',
-  'ЗИМА','ВЕСНА','ЛЕТО','ОСЕНЬ','СНЕГ','ДОЖДЬ','ВЕТЕР','ТУЧА','ГРОЗА','МОРОЗ','ЖАРА','ХОЛОД','ТЕПЛО',
-  'ГОРОД','УЛИЦА','ПАРК','МОСТ','ДОРОГА','ПУТЬ','МАШИНА','ПОЕЗД','САМОЛЕТ','КОРАБЛЬ','ЛОДКА','ВЕЛОСИПЕД',
-  'ЧЕЛОВЕК','ЛЮДИ','ДРУГ','БРАТ','СЕСТРА','МАМА','ПАПА','СЫН','ДОЧЬ','ДЕД','БАБА','ДЯДЯ','ТЕТЯ',
-  'РАБОТА','ДЕЛО','ТРУД','ОТДЫХ','СИЛА','УМ','ДУША','СЕРДЦЕ','ГОЛОВА','ВОЛОСЫ','УХО','ЗУБ','ШЕЯ'
+  'ВРЕМЯ','ЖИЗНЬ','ДУША','УМ','СИЛА','ВОЛЯ','СТРАХ','СМЕХ','СЛЕЗА','РАДОСТЬ','ГОРЕ','ЛЮБОВЬ','ДРУГ',
+  'ВРАГ','БРАТ','СЕСТРА','МАТЬ','ОТЕЦ','СЫН','ДОЧЬ','ДЕД','БАБА','МУЖ','ЖЕНА','ЧЕЛОВЕК','ЛЮДИ','НАРОД',
+  'ГОРОД','УЛИЦА','ПЛОЩАДЬ','ПАРК','МОСТ','ДОРОГА','ПУТЬ','МАШИНА','ПОЕЗД','САМОЛЕТ','КОРАБЛЬ','ЛОДКА',
+  'РОТ','ТОК','КОД','ГОД','РОД','ЛОБ','БОК','СЛОН','КРОТ','ЕНОТ','БРАСЛЕТ','КАРТА','ПАРТА','СТОП','ПОСТ'
 ];
 
-let dictionary = null;
+let DICT = new Set(FALLBACK_WORDS);
+let dictLoaded = false;
+
 fetch('words.txt')
-  .then(r => r.ok ? r.text() : null)
+  .then(r => { if (!r.ok) throw new Error(); return r.text(); })
   .then(txt => {
-    if (txt) {
-      dictionary = new Set(txt.split(/\r?\n/).map(w => w.trim().toUpperCase()).filter(w => w.length >= 2));
+    const words = txt.split(/\r?\n/).map(w => w.trim().toUpperCase()).filter(w => w.length >= 2 && /^[А-ЯЁ]+$/.test(w));
+    if (words.length > 0) {
+      DICT = new Set(words);
+      dictLoaded = true;
     }
-  }).catch(() => {});
+  })
+  .catch(() => {});
 
-const BONUS_MAP = (() => {
-  const m = Array.from({ length: 15 }, () => Array(15).fill(''));
-  const setSym = (r, c, type) => { m[r][c] = m[r][14-c] = m[14-r][c] = m[14-r][14-c] = type; };
-  [[0,0],[0,7],[7,0]].forEach(([r,c]) => setSym(r,c,'tw'));
-  [[1,1],[2,2],[3,3],[4,4]].forEach(([r,c]) => setSym(r,c,'dw'));
-  [[1,5],[5,1],[5,5]].forEach(([r,c]) => setSym(r,c,'tl'));
-  [[0,3],[3,0],[2,6],[6,2],[3,7],[7,3],[6,6]].forEach(([r,c]) => setSym(r,c,'dl'));
-  m[7][7] = 'center';
-  return m;
-})();
-const BONUS_LABELS = { tw: '3С', dw: '2С', tl: '3Б', dl: '2Б', center: '★' };
+// Карта бонусов 15x15
+const BONUS = Array.from({ length: 15 }, () => Array(15).fill(''));
+[[0,0],[0,7],[0,14],[7,0],[7,14],[14,0],[14,7],[14,14]].forEach(([r,c]) => BONUS[r][c] = 'tw');
+[[1,1],[2,2],[3,3],[4,4],[1,13],[2,12],[3,11],[4,10],[13,1],[12,2],[11,3],[10,4],[13,13],[12,12],[11,11],[10,10]].forEach(([r,c]) => BONUS[r][c] = 'dw');
+[[1,5],[1,9],[5,1],[5,5],[5,9],[5,13],[9,1],[9,5],[9,9],[9,13],[13,5],[13,9]].forEach(([r,c]) => BONUS[r][c] = 'tl');
+[[0,3],[0,11],[2,6],[2,8],[3,0],[3,7],[3,14],[6,2],[6,6],[6,8],[6,12],[7,3],[7,11],[8,2],[8,6],[8,8],[8,12],[11,0],[11,7],[11,14],[12,6],[12,8],[14,3],[14,11]].forEach(([r,c]) => BONUS[r][c] = 'dl');
+BONUS[7][7] = 'center';
 
-let peer = null, conn = null, isHost = false, isBotGame = false;
-let myName = tg?.initDataUnsafe?.user?.first_name || 'Вы';
-let oppName = 'Соперник';
-let selectedRackIdx = null;
-let tempPlacements = []; // { r, c, letter, isJoker, rackIdx }
+const BONUS_LABEL = { tw: '3С', dw: '2С', tl: '3Б', dl: '2Б', center: '★' };
 
 let state = {
-  board: [],
+  mode: 'bot', // 'bot' | 'p2p'
+  isHost: true,
+  turn: 1, // 1 или 2
+  board: Array.from({ length: 15 }, () => Array(15).fill(null)),
   bag: [],
-  scores: [0, 0],
-  racks: [[], []],
-  turn: 0,
+  p1Rack: [],
+  p2Rack: [],
+  p1Score: 0,
+  p2Score: 0,
   passes: 0
 };
 
-function createBag() {
-  const b = [];
-  for (const [l, count] of LETTERS_DIST) {
-    for (let i = 0; i < count; i++) b.push(l);
-  }
-  for (let i = b.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [b[i], b[j]] = [b[j], b[i]];
-  }
-  return b;
-}
+let tempPlaced = []; // {r, c, letter, isJoker, rackIdx}
+let selectedRackIdx = null;
+let peer = null;
+let conn = null;
 
-function drawTiles(rack, bag, count = 7) {
-  while (rack.length < count && bag.length > 0) {
-    rack.push(bag.pop());
-  }
-}
-
-function initGameState() {
-  state.board = Array.from({ length: 15 }, () => Array(15).fill(null));
-  state.bag = createBag();
-  state.scores = [0, 0];
-  state.racks = [[], []];
-  drawTiles(state.racks[0], state.bag);
-  drawTiles(state.racks[1], state.bag);
-  state.turn = 0;
-  state.passes = 0;
-  tempPlacements = [];
-  selectedRackIdx = null;
-}
-
-function myIdx() { return isBotGame ? 0 : (isHost ? 0 : 1); }
-function isMyTurn() { return state.turn = myIdx(); }
+const $ = id => document.getElementById(id);
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  $(id).classList.add('active');
 }
 
-function setStatus(msg, isLobby = false) {
-  document.getElementById(isLobby ? 'lobby-status' : 'game-status').textContent = msg;
+function setStatus(id, msg) {
+  $(id).textContent = msg;
 }
 
-// --- ЗАПУСК С БОТОМ ---
-document.getElementById('btn-bot').onclick = () => {
-  isBotGame = true;
-  isHost = true;
-  oppName = '🤖 Бот';
-  initGameState();
-  showScreen('game');
-  render();
-  setStatus('Ваш ход! Поставьте слово через центр ★');
-};
-
-// --- МУЛЬТИПЛЕЕР (PeerJS) ---
-function genCode() {
-  return Math.random().toString(36).substring(2, 7).toUpperCase();
+function createBag() {
+  const bag = [];
+  LETTERS_DIST.forEach(([l, count]) => {
+    for (let i = 0; i < count; i++) bag.push(l);
+  });
+  for (let i = bag.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [bag[i], bag[j]] = [bag[j], bag[i]];
+  }
+  return bag;
 }
 
-document.getElementById('btn-create').onclick = () => {
-  const code = genCode();
-  isBotGame = false;
-  isHost = true;
-  setStatus('Создание комнаты...', true);
-  peer = new Peer('erudit-' + code);
-  peer.on('open', () => {
-    document.getElementById('my-room-code').textContent = code;
-    document.getElementById('room-created').style.display = 'flex';
-    setStatus('', true);
-  });
-  peer.on('connection', c => {
-    conn = c;
-    setupConn();
-  });
-  peer.on('error', err => setStatus('Ошибка: ' + err.type, true));
-};
-
-document.getElementById('btn-share').onclick = () => {
-  const code = document.getElementById('my-room-code').textContent;
-  const text = `Сыграем в Эрудит! Код комнаты: ${code}`;
-  if (tg) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(text)}`);
-};
-
-document.getElementById('btn-join').onclick = () => {
-  const code = document.getElementById('join-code').value.trim().toUpperCase();
-  if (!code) return setStatus('Введите код комнаты', true);
-  isBotGame = false;
-  isHost = false;
-  setStatus('Подключение...', true);
-  peer = new Peer();
-  peer.on('open', () => {
-    conn = peer.connect('erudit-' + code);
-    setupConn();
-  });
-  peer.on('error', err => setStatus('Ошибка: ' + err.type, true));
-};
-
-function setupConn() {
-  conn.on('open', () => {
-    conn.send({ type: 'hello', name: myName });
-    if (isHost) {
-      initGameState();
-      conn.send({ type: 'state', state });
-      showScreen('game');
-      render();
-    }
-  });
-  conn.on('data', data => {
-    if (data.type = 'hello') {
-      oppName = data.name;
-      render();
-    } else if (data.type = 'state') {
-      state = data.state;
-      tempPlacements = [];
-      selectedRackIdx = null;
-      showScreen('game');
-      render();
-    }
-  });
-}
-
-function syncState() {
-  if (!isBotGame && conn && conn.open) {
-    conn.send({ type: 'state', state });
+function drawTiles(rack, count) {
+  while (rack.length < count && state.bag.length > 0) {
+    rack.push(state.bag.pop());
   }
 }
 
-// --- ОТРИСОВКА ---
-function render() {
-  const idx = myIdx();
-  const oppIdx = 1 - idx;
+function initGame(mode, isHost = true) {
+  state.mode = mode;
+  state.isHost = isHost;
+  state.turn = 1;
+  state.board = Array.from({ length: 15 }, () => Array(15).fill(null));
+  state.bag = createBag();
+  state.p1Rack = [];
+  state.p2Rack = [];
+  state.p1Score = 0;
+  state.p2Score = 0;
+  state.passes = 0;
+  tempPlaced = [];
+  selectedRackIdx = null;
 
-  document.getElementById('p1-name').textContent = myName;
-  document.getElementById('p1-score').textContent = state.scores[idx] + ' очк.';
-  document.getElementById('p2-name').textContent = oppName;
-  document.getElementById('p2-score').textContent = state.scores[oppIdx] + ' очк.';
+  drawTiles(state.p1Rack, 7);
+  drawTiles(state.p2Rack, 7);
 
-  document.getElementById('p1-box').classList.toggle('active-turn', isMyTurn());
-  document.getElementById('p2-box').classList.toggle('active-turn', !isMyTurn());
-  document.getElementById('bag-count').textContent = state.bag.length;
-  document.getElementById('turn-indicator').textContent = isMyTurn() ? 'Ваш ход' : `Ход: ${oppName}`;
+  $('p1-name').textContent = 'Вы';
+  $('p2-name').textContent = mode = 'bot' ? 'Бот 🤖' : 'Соперник';
+  showScreen('game');
+  renderAll();
+  setStatus('game-status', dictLoaded ? 'Словарь загружен!' : 'Базовый словарь (загрузите words.txt)');
+}
 
-  const boardEl = document.getElementById('board');
+function renderAll() {
+  const myTurn = (state.mode =** 'bot' && state.turn **= 1) || (state.mode =** 'p2p' && ((state.isHost && state.turn **= 1) || (!state.isHost && state.turn = 2)));
+  $('p1-score').textContent = `${state.p1Score} очк.`;
+  $('p2-score').textContent = `${state.p2Score} очк.`;
+  $('bag-count').textContent = state.bag.length;
+  $('turn-indicator').textContent = myTurn ? 'Ваш ход' : (state.mode = 'bot' ? 'Думает бот...' : 'Ход соперника');
+  $('p1-box').classList.toggle('active-turn', state.turn = 1);
+  $('p2-box').classList.toggle('active-turn', state.turn = 2);
+
+  $('btn-recall').disabled = !myTurn || tempPlaced.length = 0;
+  $('btn-pass').disabled = !myTurn;
+  $('btn-submit').disabled = !myTurn || tempPlaced.length = 0;
+
+  renderBoard();
+  renderRack();
+}
+
+function renderBoard() {
+  const boardEl = $('board');
   boardEl.innerHTML = '';
   for (let r = 0; r < 15; r++) {
     for (let c = 0; c < 15; c++) {
       const cell = document.createElement('div');
-      const bonus = BONUS_MAP[r][c];
-      cell.className = 'cell' + (bonus ? ' ' + bonus : '');
+      const b = BONUS[r][c];
+      cell.className = 'cell' + (b ? ' ' + b : '');
+      const placed = state.board[r][c];
+      const temp = tempPlaced.find(t => t.r =** r && t.c **= c);
 
-      const fixed = state.board[r][c];
-      const temp = tempPlacements.find(t => t.r =** r && t.c **= c);
-
-      if (fixed) {
-        cell.appendChild(makeTileEl(fixed.letter, fixed.isJoker ? 0 : POINTS_MAP[fixed.letter], false));
+      if (placed) {
+        cell.appendChild(createTileEl(placed.letter, placed.isJoker ? 0 : POINTS_MAP[placed.letter], false));
       } else if (temp) {
-        const el = makeTileEl(temp.letter, temp.isJoker ? 0 : POINTS_MAP[temp.letter], true);
+        const el = createTileEl(temp.letter, temp.isJoker ? 0 : POINTS_MAP[temp.letter], true);
         el.onclick = () => removeTempTile(r, c);
         cell.appendChild(el);
       } else {
-        cell.textContent = BONUS_LABELS[bonus] || '';
-        cell.onclick = () => placeTileAt(r, c);
+        cell.textContent = BONUS_LABEL[b] || '';
+        cell.onclick = () => placeSelectedTile(r, c);
       }
       boardEl.appendChild(cell);
     }
   }
+}
 
-  const rackEl = document.getElementById('rack');
+function createTileEl(letter, pts, isTemp) {
+  const div = document.createElement('div');
+  div.className = 'tile' + (isTemp ? ' temp' : '');
+  div.textContent = letter;
+  const span = document.createElement('span');
+  span.className = 'pts';
+  span.textContent = pts;
+  div.appendChild(span);
+  return div;
+}
+
+function renderRack() {
+  const rackEl = $('rack');
   rackEl.innerHTML = '';
-  const myRack = state.racks[idx];
-  myRack.forEach((l, i) => {
-    const used = tempPlacements.some(t => t.rackIdx = i);
-    if (used) return;
-    const el = makeTileEl(l, POINTS_MAP[l], false);
-    if (selectedRackIdx = i) el.classList.add('selected');
-    el.onclick = () => {
-      if (!isMyTurn()) return;
-      selectedRackIdx = (selectedRackIdx = i) ? null : i;
-      render();
+  const myRack = (state.mode = 'p2p' && !state.isHost) ? state.p2Rack : state.p1Rack;
+  myRack.forEach((letter, idx) => {
+    const isUsed = tempPlaced.some(t => t.rackIdx = idx);
+    if (isUsed) return;
+    const tile = createTileEl(letter, POINTS_MAP[letter] ?? 0, false);
+    if (selectedRackIdx = idx) tile.classList.add('selected');
+    tile.onclick = () => {
+      selectedRackIdx = (selectedRackIdx = idx) ? null : idx;
+      renderRack();
     };
-    rackEl.appendChild(el);
+    rackEl.appendChild(tile);
   });
-
-  document.getElementById('btn-submit').disabled = !isMyTurn() || tempPlacements.length = 0;
-  document.getElementById('btn-pass').disabled = !isMyTurn();
-  document.getElementById('btn-recall').disabled = !isMyTurn() || tempPlacements.length = 0;
 }
 
-function makeTileEl(letter, pts, isTemp) {
-  const el = document.createElement('div');
-  el.className = 'tile' + (isTemp ? ' temp' : '');
-  el.textContent = letter;
-  const p = document.createElement('span');
-  p.className = 'pts';
-  p.textContent = pts;
-  el.appendChild(p);
-  return el;
-}
-
-function placeTileAt(r, c) {
-  if (!isMyTurn() || selectedRackIdx = null) return;
-  const letter = state.racks[myIdx()][selectedRackIdx];
-  const rIdx = selectedRackIdx;
-  selectedRackIdx = null;
-
-  if (letter = '*') {
+function placeSelectedTile(r, c) {
+  if (selectedRackIdx = null) return;
+  const myRack = (state.mode = 'p2p' && !state.isHost) ? state.p2Rack : state.p1Rack;
+  const rawLetter = myRack[selectedRackIdx];
+  if (rawLetter = '*') {
     openJokerModal(chosen => {
-      tempPlacements.push({ r, c, letter: chosen, isJoker: true, rackIdx: rIdx });
-      render();
+      tempPlaced.push({ r, c, letter: chosen, isJoker: true, rackIdx: selectedRackIdx });
+      selectedRackIdx = null;
+      renderAll();
     });
   } else {
-    tempPlacements.push({ r, c, letter, isJoker: false, rackIdx: rIdx });
-    render();
+    tempPlaced.push({ r, c, letter: rawLetter, isJoker: false, rackIdx: selectedRackIdx });
+    selectedRackIdx = null;
+    renderAll();
   }
 }
 
 function removeTempTile(r, c) {
-  if (!isMyTurn()) return;
-  tempPlacements = tempPlacements.filter(t => !(t.r =** r && t.c **= c));
-  render();
+  tempPlaced = tempPlaced.filter(t => !(t.r =** r && t.c **= c));
+  renderAll();
 }
 
 function openJokerModal(cb) {
-  const modal = document.getElementById('joker-modal');
-  const grid = document.getElementById('alpha-grid');
+  const grid = $('alpha-grid');
   grid.innerHTML = '';
   ALPHABET.forEach(l => {
-    const b = document.createElement('button');
-    b.textContent = l;
-    b.onclick = () => { modal.classList.remove('active'); cb(l); };
-    grid.appendChild(b);
+    const btn = document.createElement('button');
+    btn.textContent = l;
+    btn.onclick = () => {
+      $('joker-modal').classList.remove('active');
+      cb(l);
+    };
+    grid.appendChild(btn);
   });
-  modal.classList.add('active');
+  $('joker-modal').classList.add('active');
 }
 
-document.getElementById('btn-recall').onclick = () => {
-  tempPlacements = [];
-  selectedRackIdx = null;
-  render();
-};
+function validateAndScore(placed) {
+  if (placed.length = 0) return { ok: false, msg: 'Поставьте хотя бы одну букву' };
+  const boardEmpty = state.board.every(row => row.every(c => c = null));
+  if (boardEmpty) {
+    if (!placed.some(t => t.r =** 7 && t.c **= 7)) return { ok: false, msg: 'Первый ход должен проходить через ★' };
+    if (placed.length < 2) return { ok: false, msg: 'Первое слово должно быть минимум из 2 букв' };
+  }
 
-document.getElementById('btn-pass').onclick = () => {
-  if (!isMyTurn()) return;
-  tempPlacements = [];
-  state.passes++;
-  endTurn('Игрок пропустил ход');
-};
-
-// --- ПРОВЕРКА ХОДА И ПОДСЧЁТ ОЧКОВ ---
-function isBoardEmpty() {
-  return state.board.every(row => row.every(c => c = null));
-}
-
-function isValidWord(w) {
-  if (w.length < 2) return false;
-  if (dictionary) return dictionary.has(w);
-  return true; // Если словаря нет, принимаем любые слова игрока
-}
-
-function evaluateMove(placements) {
-  if (placements.length = 0) return { ok: false, err: 'Поставьте хотя бы одну букву' };
-
-  const rows = placements.map(p => p.r);
-  const cols = placements.map(p => p.c);
-  const sameRow = rows.every(r => r = rows[0]);
-  const sameCol = cols.every(c => c = cols[0]);
-  if (!sameRow && !sameCol) return { ok: false, err: 'Буквы должны быть в одной линии' };
+  const rows = new Set(placed.map(t => t.r));
+  const cols = new Set(placed.map(t => t.c));
+  if (rows.size > 1 && cols.size > 1) return { ok: false, msg: 'Буквы должны лежать в одной линии' };
 
   const getCell = (r, c) => {
     if (r < 0 || r >= 15 || c < 0 || c >= 15) return null;
-    return state.board[r][c] || placements.find(p => p.r =** r && p.c **= c) || null;
+    return state.board[r][c] || placed.find(t => t.r =** r && t.c **= c) || null;
   };
 
-  // Проверка непрерывности
-  if (sameRow) {
-    const r = rows[0], minC = Math.min(...cols), maxC = Math.max(...cols);
-    for (let c = minC; c <= maxC; c++) if (!getCell(r, c)) return { ok: false, err: 'Между буквами не должно быть разрывов' };
-  } else {
-    const c = cols[0], minR = Math.min(...rows), maxR = Math.max(...rows);
-    for (let r = minR; r <= maxR; r++) if (!getCell(r, c)) return { ok: false, err: 'Между буквами не должно быть разрывов' };
-  }
-
-  // Первый ход через центр или касание существующих букв
-  if (isBoardEmpty()) {
-    if (!placements.some(p => p.r =** 7 && p.c **= 7)) return { ok: false, err: 'Первое слово должно проходить через центр ★' };
-    if (placements.length < 2) return { ok: false, err: 'Первое слово должно быть от 2 букв' };
-  } else {
-    const touches = placements.some(p =>
-      [[0,1],[0,-1],[1,0],[-1,0]].some(([dr, dc]) => {
-        const nr = p.r + dr, nc = p.c + dc;
-        return nr >= 0 && nr < 15 && nc >= 0 && nc < 15 && state.board[nr][nc] ! null;
-      })
+  if (!boardEmpty) {
+    const touches = placed.some(({ r, c }) =>
+      state.board[r-1]?.[c] || state.board[r+1]?.[c] || state.board[r]?.[c-1] || state.board[r]?.[c+1]
     );
-    if (!touches) return { ok: false, err: 'Слово должно касаться букв на поле' };
+    if (!touches) return { ok: false, msg: 'Слово должно примыкать к уже стоящим буквам' };
   }
 
-  // Сбор всех образованных слов
+  // Проверка непрерывности линии
+  if (rows.size = 1) {
+    const r = [...rows][0];
+    const minC = Math.min(...placed.map(t => t.c));
+    const maxC = Math.max(...placed.map(t => t.c));
+    for (let c = minC; c <= maxC; c++) if (!getCell(r, c)) return { ok: false, msg: 'Буквы не должны прерываться' };
+  } else {
+    const c = [...cols][0];
+    const minR = Math.min(...placed.map(t => t.r));
+    const maxR = Math.max(...placed.map(t => t.r));
+    for (let r = minR; r <= maxR; r++) if (!getCell(r, c)) return { ok: false, msg: 'Буквы не должны прерываться' };
+  }
+
   const words = [];
+  const seenWords = new Set();
+
   const extractWord = (r, c, dr, dc) => {
     while (getCell(r - dr, c - dc)) { r -= dr; c -= dc; }
     let word = '', score = 0, wordMult = 1;
-    const cells = [];
-    while (true) {
-      const tile = getCell(r, c);
-      if (!tile) break;
-      word += tile.letter;
-      let pts = tile.isJoker ? 0 : POINTS_MAP[tile.letter];
-      const isNew = placements.some(p => p.r =** r && p.c **= c);
+    const coords = [];
+    while (getCell(r, c)) {
+      const cell = getCell(r, c);
+      const isNew = placed.some(t => t.r =** r && t.c **= c);
+      let pts = cell.isJoker ? 0 : (POINTS_MAP[cell.letter] || 0);
       if (isNew) {
-        const b = BONUS_MAP[r][c];
+        const b = BONUS[r][c];
         if (b = 'dl') pts *= 2;
         if (b = 'tl') pts *= 3;
         if (b =** 'dw' || b **= 'center') wordMult *= 2;
         if (b = 'tw') wordMult *= 3;
       }
+      word += cell.letter;
       score += pts;
-      cells.push(`${r},${c}`);
+      coords.push(`${r},${c}`);
       r += dr; c += dc;
     }
-    if (word.length > 1) words.push({ word, score: score * wordMult, key: cells.join('|') });
+    if (word.length >= 2) {
+      const key = `${dr},${dc}:${coords[0]}`;
+      if (!seenWords.has(key)) {
+        seenWords.add(key);
+        words.push({ word, score: score * wordMult });
+      }
+    }
   };
 
-  placements.forEach(p => {
-    extractWord(p.r, p.c, 0, 1);
-    extractWord(p.r, p.c, 1, 0);
+  placed.forEach(({ r, c }) => {
+    extractWord(r, c, 0, 1);
+    extractWord(r, c, 1, 0);
   });
 
-  const uniqueWords = Object.values(Object.fromEntries(words.map(w => [w.key, w])));
-  if (uniqueWords.length = 0) return { ok: false, err: 'Слово должно быть минимум из 2 букв' };
-
-  for (const w of uniqueWords) {
-    if (!isValidWord(w.word)) return { ok: false, err: `Слова «${w.word}» нет в словаре` };
+  if (words.length = 0) return { ok: false, msg: 'Слово должно быть минимум из 2 букв' };
+  for (const w of words) {
+    if (!DICT.has(w.word)) return { ok: false, msg: `Слова "${w.word}" нет в словаре` };
   }
 
-  let total = uniqueWords.reduce((s, w) => s + w.score, 0);
-  if (placements.length = 7) total += 50;
-
-  return { ok: true, score: total, words: uniqueWords.map(w => w.word) };
+  let total = words.reduce((s, w) => s + w.score, 0);
+  if (placed.length = 7) total += 15; // бонус за все 7 фишек
+  return { ok: true, score: total, words: words.map(w => w.word) };
 }
 
-document.getElementById('btn-submit').onclick = () => {
-  if (!isMyTurn()) return;
-  const res = evaluateMove(tempPlacements);
-  if (!res.ok) return setStatus(res.err);
+function commitMove(placed, playerNum) {
+  const res = validateAndScore(placed);
+  if (!res.ok) {
+    setStatus('game-status', res.msg);
+    return false;
+  }
+  placed.forEach(({ r, c, letter, isJoker }) => {
+    state.board[r][c] = { letter, isJoker };
+  });
 
-  applyMove(myIdx(), tempPlacements, res.score);
-  tempPlacements = [];
+  const rack = playerNum = 1 ? state.p1Rack : state.p2Rack;
+  const usedIndices = placed.map(t => t.rackIdx).sort((a, b) => b - a);
+  usedIndices.forEach(idx => rack.splice(idx, 1));
+  drawTiles(rack, 7);
+
+  if (playerNum = 1) state.p1Score += res.score;
+  else state.p2Score += res.score;
+
   state.passes = 0;
-  endTurn(`Вы составили: ${res.words.join(', ')} (+${res.score})`);
-};
-
-function applyMove(playerIdx, placements, score) {
-  placements.forEach(p => {
-    state.board[p.r][p.c] = { letter: p.letter, isJoker: p.isJoker };
-  });
-  const usedIndices = placements.map(p => p.rackIdx).sort((a, b) => b - a);
-  usedIndices.forEach(i => state.racks[playerIdx].splice(i, 1));
-  drawTiles(state.racks[playerIdx], state.bag);
-  state.scores[playerIdx] += score;
+  state.turn = playerNum = 1 ? 2 : 1;
+  tempPlaced = [];
+  selectedRackIdx = null;
+  setStatus('game-status', `${playerNum = 1 ? 'Вы' : 'Соперник'}: ${res.words.join(', ')} (+${res.score})`);
+  renderAll();
+  return true;
 }
 
-function endTurn(msg) {
-  if (state.passes >= 4 || (state.bag.length =** 0 && (state.racks[0].length **= 0 || state.racks[1].length = 0))) {
-    const winner = state.scores[0] > state.scores[1] ? myName : (state.scores[1] > state.scores[0] ? oppName : 'Ничья');
-    setStatus(`Игра окончена! Победитель: ${winner}`);
-    render();
-    syncState();
-    return;
-  }
-
-  state.turn = 1 - state.turn;
-  setStatus(msg);
-  render();
-  syncState();
-
-  if (isBotGame && state.turn = 1) {
-    setStatus('🤖 Бот думает...');
-    setTimeout(botPlay, 700);
-  }
-}
-
-// --- ЛОГИКА БОТА ---
+// Логика бота
 function botPlay() {
-  const botRack = state.racks[1];
-  const wordList = dictionary ? Array.from(dictionary).filter(w => w.length <= 6) : FALLBACK_WORDS;
-  // Перемешиваем небольшой срез словаря для скорости и разнообразия
-  const sample = [];
-  const step = Math.max(1, Math.floor(wordList.length / 1500));
-  for (let i = Math.floor(Math.random() * step); i < wordList.length; i += step) {
-    sample.push(wordList[i]);
-  }
-
-  let bestMove = null;
+  if (state.mode !** 'bot' || state.turn !** 2) return;
+  const rack = state.p2Rack;
+  const boardEmpty = state.board.every(r => r.every(c => c = null));
 
   const tryPlaceWord = (word, startR, startC, dr, dc) => {
-    if (startR < 0 || startC < 0 || startR + dr * (word.length - 1) >= 15 || startC + dc * (word.length - 1) >= 15) return;
-    const placements = [];
-    const usedRack = new Set();
-
+    const tempRack = [...rack];
+    const placed = [];
     for (let i = 0; i < word.length; i++) {
-      const r = startR + dr * i, c = startC + dc * i;
-      const ch = word[i];
+      const r = startR + i * dr, c = startC + i * dc;
+      if (r < 0 || r >= 15 || c < 0 || c >= 15) return null;
       const existing = state.board[r][c];
       if (existing) {
-        if (existing.letter ! ch) return;
+        if (existing.letter ! word[i]) return null;
       } else {
-        let rIdx = botRack.findIndex((l, idx) => l = ch && !usedRack.has(idx));
+        let idx = tempRack.indexOf(word[i]);
         let isJoker = false;
-        if (rIdx = -1) {
-          rIdx = botRack.findIndex((l, idx) => l = '*' && !usedRack.has(idx));
-          isJoker = true;
-        }
-        if (rIdx = -1) return;
-        usedRack.add(rIdx);
-        placements.push({ r, c, letter: ch, isJoker, rackIdx: rIdx });
+        if (idx = -1) { idx = tempRack.indexOf('*'); isJoker = true; }
+        if (idx = -1) return null;
+        tempRack[idx] = null;
+        placed.push({ r, c, letter: word[i], isJoker, rackIdx: idx });
       }
     }
-
-    if (placements.length = 0) return;
-    const res = evaluateMove(placements);
-    if (res.ok && (!bestMove || res.score > bestMove.score)) {
-      bestMove = { placements, score: res.score, words: res.words };
-    }
+    if (placed.length = 0) return null;
+    const res = validateAndScore(placed);
+    return res.ok ? { placed, score: res.score } : null;
   };
 
-  if (isBoardEmpty()) {
-    for (const w of sample) {
-      if (w.length >= 2 && w.length <= 7) {
-        tryPlaceWord(w, 7, 7 - Math.floor(w.length / 2), 0, 1);
-      }
-      if (bestMove && bestMove.score >= 12) break;
+  let bestMove = null;
+  const dictArr = Array.from(DICT);
+  // Перебираем до 1500 случайных/коротких слов для быстродействия
+  const candidates = dictArr.filter(w => w.length <= 7).slice(0, 1500);
+
+  if (boardEmpty) {
+    for (const w of candidates) {
+      const move = tryPlaceWord(w, 7, 7 - Math.floor(w.length / 2), 0, 1);
+      if (move && (!bestMove || move.score > bestMove.score)) bestMove = move;
     }
   } else {
     const anchors = [];
     for (let r = 0; r < 15; r++) {
       for (let c = 0; c < 15; c++) {
-        if (state.board[r][c]) anchors.push([r, c, state.board[r][c].letter]);
+        if (state.board[r][c]) anchors.push({ r, c, letter: state.board[r][c].letter });
       }
     }
-    for (const [ar, ac, aLetter] of anchors) {
-      for (const w of sample) {
-        const idx = w.indexOf(aLetter);
+    for (const anc of anchors.slice(0, 20)) {
+      for (const w of candidates) {
+        const idx = w.indexOf(anc.letter);
         if (idx = -1) continue;
-        tryPlaceWord(w, ar, ac - idx, 0, 1);
-        tryPlaceWord(w, ar - idx, ac, 1, 0);
-        if (bestMove && bestMove.score >= 18) break;
+        const m1 = tryPlaceWord(w, anc.r, anc.c - idx, 0, 1);
+        if (m1 && (!bestMove || m1.score > bestMove.score)) bestMove = m1;
+        const m2 = tryPlaceWord(w, anc.r - idx, anc.c, 1, 0);
+        if (m2 && (!bestMove || m2.score > bestMove.score)) bestMove = m2;
+        if (bestMove && bestMove.score >= 12) break;
       }
-      if (bestMove && bestMove.score >= 18) break;
+      if (bestMove && bestMove.score >= 12) break;
     }
   }
 
   if (bestMove) {
-    applyMove(1, bestMove.placements, bestMove.score);
-    state.passes = 0;
-    endTurn(`🤖 Бот составил: ${bestMove.words.join(', ')} (+${bestMove.score})`);
+    commitMove(bestMove.placed, 2);
   } else {
     state.passes++;
-    endTurn('🤖 Бот пропустил ход');
+    state.turn = 1;
+    setStatus('game-status', 'Бот спасовал');
+    renderAll();
   }
 }
+
+// Кнопки управления игрой
+$('btn-recall').onclick = () => { tempPlaced = []; selectedRackIdx = null; renderAll(); };
+$('btn-pass').onclick = () => {
+  tempPlaced = [];
+  state.passes++;
+  state.turn = state.turn = 1 ? 2 : 1;
+  if (state.mode = 'p2p' && conn) conn.send({ type: 'sync', state });
+  renderAll();
+  if (state.mode = 'bot') setTimeout(botPlay, 700);
+};
+$('btn-submit').onclick = () => {
+  const playerNum = (state.mode = 'p2p' && !state.isHost) ? 2 : 1;
+  if (commitMove(tempPlaced, playerNum)) {
+    if (state.mode = 'p2p' && conn) conn.send({ type: 'sync', state });
+    if (state.mode = 'bot') setTimeout(botPlay, 700);
+  }
+};
+
+// Кнопка игры с ботом
+$('btn-bot').onclick = () => initGame('bot', true);
+
+// P2P Мультиплеер (PeerJS)
+$('btn-create').onclick = () => {
+  if (typeof Peer = 'undefined') return setStatus('lobby-status', 'Ошибка сети PeerJS');
+  const code = Math.random().toString(36).substring(2, 7).toUpperCase();
+  setStatus('lobby-status', 'Создаём комнату...');
+  peer = new Peer('erudit-' + code);
+  peer.on('open', () => {
+    $('my-room-code').textContent = code;
+    $('room-created').style.display = 'flex';
+    setStatus('lobby-status', '');
+  });
+  peer.on('connection', c => {
+    conn = c;
+    conn.on('open', () => {
+      initGame('p2p', true);
+      conn.send({ type: 'sync', state });
+    });
+    conn.on('data', data => {
+      if (data.type = 'sync') { state = data.state; renderAll(); }
+    });
+  });
+  peer.on('error', () => setStatus('lobby-status', 'Ошибка подключения'));
+};
+
+$('btn-join').onclick = () => {
+  const code = $('join-code').value.trim().toUpperCase();
+  if (!code) return setStatus('lobby-status', 'Введите код комнаты');
+  if (typeof Peer = 'undefined') return setStatus('lobby-status', 'Ошибка сети PeerJS');
+  setStatus('lobby-status', 'Подключаемся...');
+  peer = new Peer();
+  peer.on('open', () => {
+    conn = peer.connect('erudit-' + code);
+    conn.on('open', () => {
+      showScreen('game');
+      setStatus('game-status', 'Подключено! Ждём данные...');
+    });
+    conn.on('data', data => {
+      if (data.type = 'sync') {
+        state = data.state;
+        state.isHost = false;
+        showScreen('game');
+        renderAll();
+      }
+    });
+  });
+  peer.on('error', () => setStatus('lobby-status', 'Комната не найдена'));
+};
+
+$('btn-share').onclick = () => {
+  const code = $('my-room-code').textContent;
+  const text = `Заходи играть со мной в Эрудит! Код комнаты: ${code}`;
+  if (tg) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(text)}`);
+};
 </script>
 </body>
 </html>
