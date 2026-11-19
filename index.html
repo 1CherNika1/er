@@ -37,14 +37,13 @@
     .screen { width: 100%; max-width: 480px; display: none; flex-direction: column; gap: 10px; }
     .screen.active { display: flex; }
 
-    /* Лобби */
     .card {
       background: var(--sec-bg);
       border-radius: 14px;
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
@@ -77,9 +76,9 @@
     }
     button:active { opacity: 0.8; }
     button.secondary { background: rgba(255,255,255,0.1); color: var(--text); }
+    button.bot-btn { background: #27ae60; color: #fff; }
     button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* Шапка игры */
     .header {
       display: flex;
       justify-content: space-between;
@@ -93,7 +92,6 @@
     .player-box.active-turn { color: #4ade80; font-weight: bold; }
     .bag-info { font-size: 12px; color: var(--hint); text-align: center; }
 
-    /* Игровое поле 15x15 */
     .board-wrap {
       width: 100%;
       aspect-ratio: 1 / 1;
@@ -119,14 +117,12 @@
       cursor: pointer;
     }
 
-    /* Бонусные клетки */
-    .cell.tw { background: #c0392b; color: #fff; } /* 3С */
-    .cell.dw { background: #d35400; color: #fff; } /* 2С */
-    .cell.tl { background: #2980b9; color: #fff; } /* 3Б */
-    .cell.dl { background: #16a085; color: #fff; } /* 2Б */
+    .cell.tw { background: #c0392b; color: #fff; }
+    .cell.dw { background: #d35400; color: #fff; }
+    .cell.tl { background: #2980b9; color: #fff; }
+    .cell.dl { background: #16a085; color: #fff; }
     .cell.center { background: #8e44ad; color: #fff; font-size: 12px; }
 
-    /* Фишка на поле и в руке */
     .tile {
       width: 100%;
       height: 100%;
@@ -141,9 +137,7 @@
       font-weight: 800;
       position: relative;
     }
-    .tile.temp {
-      box-shadow: 0 0 0 2px #4ade80;
-    }
+    .tile.temp { box-shadow: 0 0 0 2px #4ade80; }
     .tile .pts {
       position: absolute;
       bottom: 1px;
@@ -153,7 +147,6 @@
       line-height: 1;
     }
 
-    /* Рука игрока */
     .rack {
       display: flex;
       justify-content: center;
@@ -191,6 +184,40 @@
       min-height: 18px;
       color: #facc15;
     }
+
+    /* Модалка выбора буквы для джокера */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+    .modal.active { display: flex; }
+    .modal-box {
+      background: var(--sec-bg);
+      border-radius: 14px;
+      padding: 14px;
+      max-width: 340px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .alpha-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+    }
+    .alpha-grid button {
+      padding: 8px 0;
+      font-size: 15px;
+      background: var(--tile-bg);
+      color: var(--tile-text);
+    }
   </style>
 </head>
 <body>
@@ -199,8 +226,9 @@
   <div id="lobby" class="screen active">
     <div class="card">
       <h1>🧩 Эрудит</h1>
-      <p>Мультиплеерная игра в слова для Telegram</p>
-      <button id="btn-create">Создать новую игру</button>
+      <p>Игра в слова для Telegram</p>
+      <button id="btn-bot" class="bot-btn">🤖 Играть с ботом</button>
+      <button id="btn-create">👥 Создать игру с другом</button>
       <div id="room-created" style="display:none; flex-direction:column; gap:8px; margin-top:6px;">
         <p>Код комнаты: <strong id="my-room-code" style="color:#fff; font-size:18px;">...</strong></p>
         <button id="btn-share" class="secondary">Пригласить друга в Telegram</button>
@@ -235,24 +263,27 @@
 
     <div id="board" class="board-wrap"></div>
     <div id="game-status" class="status-msg"></div>
-
     <div id="rack" class="rack"></div>
 
     <div class="controls">
       <button id="btn-recall" class="secondary">Забрать</button>
-      <button id="btn-pass" class="secondary">Пас / Сброс</button>
+      <button id="btn-pass" class="secondary">Пас</button>
       <button id="btn-submit">Ход ✓</button>
+    </div>
+  </div>
+
+  <!-- МОДАЛКА ДЛЯ ДЖОКЕРА (*) -->
+  <div id="joker-modal" class="modal">
+    <div class="modal-box">
+      <p style="color:#fff; font-weight:600;">Выберите букву для звёздочки (*)</p>
+      <div id="alpha-grid" class="alpha-grid"></div>
     </div>
   </div>
 
 <script>
 const tg = window.Telegram?.WebApp;
-if (tg) {
-  tg.ready();
-  tg.expand();
-}
+if (tg) { tg.ready(); tg.expand(); }
 
-// Русские буквы: [буква, количество, очки]
 const LETTERS_DIST = [
   ['А', 8, 1], ['Б', 2, 3], ['В', 4, 1], ['Г', 2, 3], ['Д', 4, 2],
   ['Е', 8, 1], ['Ё', 1, 3], ['Ж', 1, 5], ['З', 2, 5], ['И', 5, 1],
@@ -262,58 +293,112 @@ const LETTERS_DIST = [
   ['Ш', 1, 8], ['Щ', 1, 10], ['Ъ', 1, 10], ['Ы', 2, 4], ['Ь', 2, 3],
   ['Э', 1, 8], ['Ю', 1, 8], ['Я', 2, 3], ['*', 2, 0]
 ];
-
 const POINTS_MAP = Object.fromEntries(LETTERS_DIST.map(x => [x[0], x[2]]));
+const ALPHABET = LETTERS_DIST.map(x => x[0]).filter(l => l ! '*');
 
-// Умная симметричная раскладка бонусов 15x15
-const BONUS_MAP = (() => {
-  const m = Array.from({ length: 15 }, () => Array(15).fill(''));
-  const setSym = (r, c, type) => {
-    m[r][c] = m[r][14-c] = m[14-r][c] = m[14-r][14-c] = type;
-  };
-  // 3x к слову (TW)
-  [[0,0],[0,7],[7,0]].forEach(([r,c]) => setSym(r,c,'tw'));
-  // 2x к слову (DW)
-  [[1,1],[2,2],[3,3],[4,4]].forEach(([r,c]) => setSym(r,c,'dw'));
-  // 3x к букве (TL)
-  [[1,5],[5,1],[5,5]].forEach(([r,c]) => setSym(r,c,'tl'));
-  // 2x к букве (DL)
-  [[0,3],[3,0],[2,6],[6,2],[3,7],[7,3],[6,6]].forEach(([r,c]) => setSym(r,c,'dl'));
-  m[7][7] = 'center';
-  return m;
-})();
+// Базовый мини-словарь для бота, если words.txt ещё не загружен
+const FALLBACK_WORDS = [
+  'ДОМ','КОТ','СОК','ЛЕС','МИР','СОН','НОС','РОТ','ГЛАЗ','РУКА','НОГА','СТОЛ','СТУЛ','ОКНО','ДВЕРЬ',
+  'ВОДА','ОГОНЬ','ЗЕМЛЯ','НЕБО','СОЛНЦЕ','ЛУНА','ЗВЕЗДА','РЕКА','МОРЕ','ГОРА','ПОЛЕ','ТРАВА','ЦВЕТОК',
+  'ДЕРЕВО','ПТИЦА','РЫБА','ЗВЕРЬ','ВОЛК','ЛИСА','МЕДВЕДЬ','ЗАЯЦ','СОБАКА','КОШКА','МЫШЬ','ХЛЕБ','СЫР',
+  'МАСЛО','МОЛОКО','ЧАЙ','КОФЕ','САХАР','СОЛЬ','МЯСО','СУП','КАША','ЯБЛОКО','ГРУША','СЛИВА','АРБУЗ',
+  'КНИГА','ЛИСТ','БУКВА','СЛОВО','ЗВУК','ПЕСНЯ','МУЗЫКА','КИНО','ТЕАТР','ИГРА','МЯЧ','ШАР','КУБ',
+  'КРУГ','УГОЛ','ТОЧКА','ЛИНИЯ','ЦВЕТ','СВЕТ','ТЕНЬ','ДЕНЬ','НОЧЬ','УТРО','ВЕЧЕР','ЧАС','ГОД','ВЕК',
+  'ЗИМА','ВЕСНА','ЛЕТО','ОСЕНЬ','СНЕГ','ДОЖДЬ','ВЕТЕР','ТУЧА','ГРОЗА','МОРОЗ','ЖАРА','ХОЛОД','ТЕПЛО',
+  'ГОРОД','УЛИЦА','ПАРК','МОСТ','ДОРОГА','ПУТЬ','МАШИНА','ПОЕЗД','САМОЛЕТ','КОРАБЛЬ','ЛОДКА','ВЕЛОСИПЕД',
+  'ЧЕЛОВЕК','ЛЮДИ','ДРУГ','БРАТ','СЕСТРА','МАМА','ПАПА','СЫН','ДОЧЬ','ДЕД','БАБА','ДЯДЯ','ТЕТЯ',
+  'РАБОТА','ДЕЛО','ТРУД','ОТДЫХ','СИЛА','УМ','ДУША','СЕРДЦЕ','ГОЛОВА','ВОЛОСЫ','УХО','ЗУБ','ШЕЯ'
+];
 
-const BONUS_LABELS = { tw: '3С', dw: '2С', tl: '3Б', dl: '2Б', center: '★' };
-
-// Словарь (опционально загружается из words.txt)
 let dictionary = null;
 fetch('words.txt')
   .then(r => r.ok ? r.text() : null)
   .then(txt => {
     if (txt) {
-      dictionary = new Set(txt.split(/\r?\n/).map(w => w.trim().toUpperCase()).filter(Boolean));
-      console.log('Словарь загружен:', dictionary.size);
+      dictionary = new Set(txt.split(/\r?\n/).map(w => w.trim().toUpperCase()).filter(w => w.length >= 2));
     }
   }).catch(() => {});
 
-// Состояние игры
-let peer = null;
-let conn = null;
-let isHost = false;
-let myName = tg?.initDataUnsafe?.user?.first_name || 'Игрок';
+const BONUS_MAP = (() => {
+  const m = Array.from({ length: 15 }, () => Array(15).fill(''));
+  const setSym = (r, c, type) => { m[r][c] = m[r][14-c] = m[14-r][c] = m[14-r][14-c] = type; };
+  [[0,0],[0,7],[7,0]].forEach(([r,c]) => setSym(r,c,'tw'));
+  [[1,1],[2,2],[3,3],[4,4]].forEach(([r,c]) => setSym(r,c,'dw'));
+  [[1,5],[5,1],[5,5]].forEach(([r,c]) => setSym(r,c,'tl'));
+  [[0,3],[3,0],[2,6],[6,2],[3,7],[7,3],[6,6]].forEach(([r,c]) => setSym(r,c,'dl'));
+  m[7][7] = 'center';
+  return m;
+})();
+const BONUS_LABELS = { tw: '3С', dw: '2С', tl: '3Б', dl: '2Б', center: '★' };
+
+let peer = null, conn = null, isHost = false, isBotGame = false;
+let myName = tg?.initDataUnsafe?.user?.first_name || 'Вы';
 let oppName = 'Соперник';
+let selectedRackIdx = null;
+let tempPlacements = []; // { r, c, letter, isJoker, rackIdx }
 
 let state = {
-  board: Array.from({ length: 15 }, () => Array(15).fill(null)), // { letter, pts }
+  board: [],
   bag: [],
-  scores: [0, 0], // [host, guest]
-  turn: 0, // 0 = host, 1 = guest
+  scores: [0, 0],
   racks: [[], []],
-  firstMoveDone: false
+  turn: 0,
+  passes: 0
 };
 
-let tempPlaced = []; // [{ r, c, letter, pts, rackIdx }]
-let selectedRackIdx = null;
+function createBag() {
+  const b = [];
+  for (const [l, count] of LETTERS_DIST) {
+    for (let i = 0; i < count; i++) b.push(l);
+  }
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
+}
+
+function drawTiles(rack, bag, count = 7) {
+  while (rack.length < count && bag.length > 0) {
+    rack.push(bag.pop());
+  }
+}
+
+function initGameState() {
+  state.board = Array.from({ length: 15 }, () => Array(15).fill(null));
+  state.bag = createBag();
+  state.scores = [0, 0];
+  state.racks = [[], []];
+  drawTiles(state.racks[0], state.bag);
+  drawTiles(state.racks[1], state.bag);
+  state.turn = 0;
+  state.passes = 0;
+  tempPlacements = [];
+  selectedRackIdx = null;
+}
+
+function myIdx() { return isBotGame ? 0 : (isHost ? 0 : 1); }
+function isMyTurn() { return state.turn = myIdx(); }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function setStatus(msg, isLobby = false) {
+  document.getElementById(isLobby ? 'lobby-status' : 'game-status').textContent = msg;
+}
+
+// --- ЗАПУСК С БОТОМ ---
+document.getElementById('btn-bot').onclick = () => {
+  isBotGame = true;
+  isHost = true;
+  oppName = '🤖 Бот';
+  initGameState();
+  showScreen('game');
+  render();
+  setStatus('Ваш ход! Поставьте слово через центр ★');
+};
 
 // --- МУЛЬТИПЛЕЕР (PeerJS) ---
 function genCode() {
@@ -322,172 +407,134 @@ function genCode() {
 
 document.getElementById('btn-create').onclick = () => {
   const code = genCode();
+  isBotGame = false;
   isHost = true;
-  document.getElementById('lobby-status').textContent = 'Подключение к серверу...';
-  peer = new Peer('ERUDIT_' + code);
-
+  setStatus('Создание комнаты...', true);
+  peer = new Peer('erudit-' + code);
   peer.on('open', () => {
-    document.getElementById('lobby-status').textContent = '';
-    document.getElementById('room-created').style.display = 'flex';
     document.getElementById('my-room-code').textContent = code;
+    document.getElementById('room-created').style.display = 'flex';
+    setStatus('', true);
   });
-
-  peer.on('connection', (c) => {
+  peer.on('connection', c => {
     conn = c;
-    setupConnection();
+    setupConn();
   });
-
-  peer.on('error', (err) => {
-    document.getElementById('lobby-status').textContent = 'Ошибка: ' + err.type;
-  });
+  peer.on('error', err => setStatus('Ошибка: ' + err.type, true));
 };
 
 document.getElementById('btn-share').onclick = () => {
   const code = document.getElementById('my-room-code').textContent;
-  const text = `Го сыграем в Эрудит! Мой код комнаты: ${code}`;
-  if (tg) {
-    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(text)}`);
-  } else {
-    navigator.clipboard?.writeText(code);
-    alert('Код скопирован: ' + code);
-  }
+  const text = `Сыграем в Эрудит! Код комнаты: ${code}`;
+  if (tg) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(text)}`);
 };
 
 document.getElementById('btn-join').onclick = () => {
   const code = document.getElementById('join-code').value.trim().toUpperCase();
-  if (!code) return;
+  if (!code) return setStatus('Введите код комнаты', true);
+  isBotGame = false;
   isHost = false;
-  document.getElementById('lobby-status').textContent = 'Подключение к комнате...';
+  setStatus('Подключение...', true);
   peer = new Peer();
   peer.on('open', () => {
-    conn = peer.connect('ERUDIT_' + code);
-    setupConnection();
+    conn = peer.connect('erudit-' + code);
+    setupConn();
   });
-  peer.on('error', () => {
-    document.getElementById('lobby-status').textContent = 'Комната не найдена или ошибка сети';
-  });
+  peer.on('error', err => setStatus('Ошибка: ' + err.type, true));
 };
 
-function setupConnection() {
+function setupConn() {
   conn.on('open', () => {
-    conn.send({ type: 'HELLO', name: myName });
+    conn.send({ type: 'hello', name: myName });
     if (isHost) {
-      initNewGame();
-      conn.send({ type: 'STATE', state });
-      startGameUI();
-    }
-  });
-
-  conn.on('data', (data) => {
-    if (data.type = 'HELLO') {
-      oppName = data.name;
-      updateNames();
-    } else if (data.type = 'STATE') {
-      state = data.state;
-      tempPlaced = [];
-      selectedRackIdx = null;
-      startGameUI();
+      initGameState();
+      conn.send({ type: 'state', state });
+      showScreen('game');
       render();
     }
   });
-
-  conn.on('close', () => {
-    document.getElementById('game-status').textContent = 'Соперник отключился!';
+  conn.on('data', data => {
+    if (data.type = 'hello') {
+      oppName = data.name;
+      render();
+    } else if (data.type = 'state') {
+      state = data.state;
+      tempPlacements = [];
+      selectedRackIdx = null;
+      showScreen('game');
+      render();
+    }
   });
 }
 
-// --- ЛОГИКА ИГРЫ ---
-function initNewGame() {
-  const bag = [];
-  LETTERS_DIST.forEach(([l, count]) => {
-    for (let i = 0; i < count; i++) bag.push(l);
-  });
-  for (let i = bag.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [bag[i], bag[j]] = [bag[j], bag[i]];
+function syncState() {
+  if (!isBotGame && conn && conn.open) {
+    conn.send({ type: 'state', state });
   }
-  state.bag = bag;
-  state.racks[0] = state.bag.splice(0, 7);
-  state.racks[1] = state.bag.splice(0, 7);
-  state.turn = 0;
-  state.scores = [0, 0];
-  state.firstMoveDone = false;
 }
 
-function startGameUI() {
-  document.getElementById('lobby').classList.remove('active');
-  document.getElementById('game').classList.add('active');
-  updateNames();
-  render();
-}
-
-function updateNames() {
-  document.getElementById('p1-name').textContent = isHost ? myName : oppName;
-  document.getElementById('p2-name').textContent = isHost ? oppName : myName;
-}
-
-function isMyTurn() {
-  return (isHost && state.turn =** 0) || (!isHost && state.turn **= 1);
-}
-
+// --- ОТРИСОВКА ---
 function render() {
-  const myIdx = isHost ? 0 : 1;
-  document.getElementById('p1-score').textContent = state.scores[0] + ' очк.';
-  document.getElementById('p2-score').textContent = state.scores[1] + ' очк.';
+  const idx = myIdx();
+  const oppIdx = 1 - idx;
+
+  document.getElementById('p1-name').textContent = myName;
+  document.getElementById('p1-score').textContent = state.scores[idx] + ' очк.';
+  document.getElementById('p2-name').textContent = oppName;
+  document.getElementById('p2-score').textContent = state.scores[oppIdx] + ' очк.';
+
+  document.getElementById('p1-box').classList.toggle('active-turn', isMyTurn());
+  document.getElementById('p2-box').classList.toggle('active-turn', !isMyTurn());
   document.getElementById('bag-count').textContent = state.bag.length;
+  document.getElementById('turn-indicator').textContent = isMyTurn() ? 'Ваш ход' : `Ход: ${oppName}`;
 
-  document.getElementById('p1-box').classList.toggle('active-turn', state.turn = 0);
-  document.getElementById('p2-box').classList.toggle('active-turn', state.turn = 1);
-  document.getElementById('turn-indicator').textContent = isMyTurn() ? 'Ваш ход!' : 'Ход соперника';
-
-  // Поле
   const boardEl = document.getElementById('board');
   boardEl.innerHTML = '';
   for (let r = 0; r < 15; r++) {
     for (let c = 0; c < 15; c++) {
       const cell = document.createElement('div');
       const bonus = BONUS_MAP[r][c];
-      cell.className = 'cell ' + bonus;
+      cell.className = 'cell' + (bonus ? ' ' + bonus : '');
 
       const fixed = state.board[r][c];
-      const temp = tempPlaced.find(t => t.r =** r && t.c **= c);
+      const temp = tempPlacements.find(t => t.r =** r && t.c **= c);
 
       if (fixed) {
-        cell.appendChild(createTileEl(fixed.letter, fixed.pts, false));
+        cell.appendChild(makeTileEl(fixed.letter, fixed.isJoker ? 0 : POINTS_MAP[fixed.letter], false));
       } else if (temp) {
-        const tEl = createTileEl(temp.letter, temp.pts, true);
-        tEl.onclick = () => removeTempTile(r, c);
-        cell.appendChild(tEl);
+        const el = makeTileEl(temp.letter, temp.isJoker ? 0 : POINTS_MAP[temp.letter], true);
+        el.onclick = () => removeTempTile(r, c);
+        cell.appendChild(el);
       } else {
         cell.textContent = BONUS_LABELS[bonus] || '';
-        cell.onclick = () => placeTileOnBoard(r, c);
+        cell.onclick = () => placeTileAt(r, c);
       }
       boardEl.appendChild(cell);
     }
   }
 
-  // Рука
   const rackEl = document.getElementById('rack');
   rackEl.innerHTML = '';
-  const myRack = state.racks[myIdx];
-  myRack.forEach((letter, idx) => {
-    if (tempPlaced.some(t => t.rackIdx = idx)) return;
-    const tEl = createTileEl(letter, POINTS_MAP[letter], false);
-    if (selectedRackIdx = idx) tEl.classList.add('selected');
-    tEl.onclick = () => {
+  const myRack = state.racks[idx];
+  myRack.forEach((l, i) => {
+    const used = tempPlacements.some(t => t.rackIdx = i);
+    if (used) return;
+    const el = makeTileEl(l, POINTS_MAP[l], false);
+    if (selectedRackIdx = i) el.classList.add('selected');
+    el.onclick = () => {
       if (!isMyTurn()) return;
-      selectedRackIdx = (selectedRackIdx = idx) ? null : idx;
+      selectedRackIdx = (selectedRackIdx = i) ? null : i;
       render();
     };
-    rackEl.appendChild(tEl);
+    rackEl.appendChild(el);
   });
 
-  document.getElementById('btn-submit').disabled = !isMyTurn() || tempPlaced.length = 0;
+  document.getElementById('btn-submit').disabled = !isMyTurn() || tempPlacements.length = 0;
   document.getElementById('btn-pass').disabled = !isMyTurn();
-  document.getElementById('btn-recall').disabled = tempPlaced.length = 0;
+  document.getElementById('btn-recall').disabled = !isMyTurn() || tempPlacements.length = 0;
 }
 
-function createTileEl(letter, pts, isTemp) {
+function makeTileEl(letter, pts, isTemp) {
   const el = document.createElement('div');
   el.className = 'tile' + (isTemp ? ' temp' : '');
   el.textContent = letter;
@@ -498,150 +545,267 @@ function createTileEl(letter, pts, isTemp) {
   return el;
 }
 
-function placeTileOnBoard(r, c) {
+function placeTileAt(r, c) {
   if (!isMyTurn() || selectedRackIdx = null) return;
-  const myIdx = isHost ? 0 : 1;
-  let letter = state.racks[myIdx][selectedRackIdx];
-  let pts = POINTS_MAP[letter];
+  const letter = state.racks[myIdx()][selectedRackIdx];
+  const rIdx = selectedRackIdx;
+  selectedRackIdx = null;
 
   if (letter = '*') {
-    const custom = prompt('Введите любую русскую букву для джокера:')?.trim().toUpperCase();
-    if (!custom || !/^[А-ЯЁ]$/.test(custom)) return;
-    letter = custom;
-    pts = 0;
+    openJokerModal(chosen => {
+      tempPlacements.push({ r, c, letter: chosen, isJoker: true, rackIdx: rIdx });
+      render();
+    });
+  } else {
+    tempPlacements.push({ r, c, letter, isJoker: false, rackIdx: rIdx });
+    render();
   }
-
-  tempPlaced.push({ r, c, letter, pts, rackIdx: selectedRackIdx });
-  selectedRackIdx = null;
-  document.getElementById('game-status').textContent = '';
-  render();
 }
 
 function removeTempTile(r, c) {
-  tempPlaced = tempPlaced.filter(t => !(t.r =** r && t.c **= c));
+  if (!isMyTurn()) return;
+  tempPlacements = tempPlacements.filter(t => !(t.r =** r && t.c **= c));
   render();
 }
 
+function openJokerModal(cb) {
+  const modal = document.getElementById('joker-modal');
+  const grid = document.getElementById('alpha-grid');
+  grid.innerHTML = '';
+  ALPHABET.forEach(l => {
+    const b = document.createElement('button');
+    b.textContent = l;
+    b.onclick = () => { modal.classList.remove('active'); cb(l); };
+    grid.appendChild(b);
+  });
+  modal.classList.add('active');
+}
+
 document.getElementById('btn-recall').onclick = () => {
-  tempPlaced = [];
+  tempPlacements = [];
   selectedRackIdx = null;
   render();
 };
 
 document.getElementById('btn-pass').onclick = () => {
   if (!isMyTurn()) return;
-  tempPlaced = [];
-  state.turn = 1 - state.turn;
-  conn.send({ type: 'STATE', state });
-  render();
+  tempPlacements = [];
+  state.passes++;
+  endTurn('Игрок пропустил ход');
 };
 
-document.getElementById('btn-submit').onclick = () => {
-  if (!isMyTurn() || tempPlaced.length = 0) return;
-  const errEl = document.getElementById('game-status');
+// --- ПРОВЕРКА ХОДА И ПОДСЧЁТ ОЧКОВ ---
+function isBoardEmpty() {
+  return state.board.every(row => row.every(c => c = null));
+}
 
-  // 1. Проверка: в одну линию
-  const sameRow = tempPlaced.every(t => t.r = tempPlaced[0].r);
-  const sameCol = tempPlaced.every(t => t.c = tempPlaced[0].c);
-  if (!sameRow && !sameCol) {
-    errEl.textContent = 'Буквы должны стоять в одну линию!';
-    return;
-  }
+function isValidWord(w) {
+  if (w.length < 2) return false;
+  if (dictionary) return dictionary.has(w);
+  return true; // Если словаря нет, принимаем любые слова игрока
+}
 
-  // 2. Первый ход через центр (7,7)
-  if (!state.firstMoveDone) {
-    if (!tempPlaced.some(t => t.r =** 7 && t.c **= 7)) {
-      errEl.textContent = 'Первый ход должен проходить через ★ (центр)!';
-      return;
-    }
-    if (tempPlaced.length < 2) {
-      errEl.textContent = 'Первое слово минимум из 2 букв!';
-      return;
-    }
+function evaluateMove(placements) {
+  if (placements.length = 0) return { ok: false, err: 'Поставьте хотя бы одну букву' };
+
+  const rows = placements.map(p => p.r);
+  const cols = placements.map(p => p.c);
+  const sameRow = rows.every(r => r = rows[0]);
+  const sameCol = cols.every(c => c = cols[0]);
+  if (!sameRow && !sameCol) return { ok: false, err: 'Буквы должны быть в одной линии' };
+
+  const getCell = (r, c) => {
+    if (r < 0 || r >= 15 || c < 0 || c >= 15) return null;
+    return state.board[r][c] || placements.find(p => p.r =** r && p.c **= c) || null;
+  };
+
+  // Проверка непрерывности
+  if (sameRow) {
+    const r = rows[0], minC = Math.min(...cols), maxC = Math.max(...cols);
+    for (let c = minC; c <= maxC; c++) if (!getCell(r, c)) return { ok: false, err: 'Между буквами не должно быть разрывов' };
   } else {
-    // Проверка соприкосновения с существующими буквами
-    const touches = tempPlaced.some(({ r, c }) => {
-      return [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].some(([nr, nc]) =>
-        nr >= 0 && nr < 15 && nc >= 0 && nc < 15 && state.board[nr][nc] ! null
-      );
-    });
-    if (!touches) {
-      errEl.textContent = 'Слово должно примыкать к буквам на поле!';
-      return;
-    }
+    const c = cols[0], minR = Math.min(...rows), maxR = Math.max(...rows);
+    for (let r = minR; r <= maxR; r++) if (!getCell(r, c)) return { ok: false, err: 'Между буквами не должно быть разрывов' };
   }
 
-  // Подсчет очков и проверка слов
-  const getTile = (r, c) => state.board[r][c] || tempPlaced.find(t => t.r =** r && t.c **= c);
-  let totalScore = 0;
-  const formedWords = [];
+  // Первый ход через центр или касание существующих букв
+  if (isBoardEmpty()) {
+    if (!placements.some(p => p.r =** 7 && p.c **= 7)) return { ok: false, err: 'Первое слово должно проходить через центр ★' };
+    if (placements.length < 2) return { ok: false, err: 'Первое слово должно быть от 2 букв' };
+  } else {
+    const touches = placements.some(p =>
+      [[0,1],[0,-1],[1,0],[-1,0]].some(([dr, dc]) => {
+        const nr = p.r + dr, nc = p.c + dc;
+        return nr >= 0 && nr < 15 && nc >= 0 && nc < 15 && state.board[nr][nc] ! null;
+      })
+    );
+    if (!touches) return { ok: false, err: 'Слово должно касаться букв на поле' };
+  }
 
-  const calcLine = (r, c, dr, dc) => {
-    while (r - dr >= 0 && c - dc >= 0 && getTile(r - dr, c - dc)) { r -= dr; c -= dc; }
-    let word = '';
-    let wordPts = 0;
-    let wordMult = 1;
-    let len = 0;
-    while (r < 15 && c < 15 && getTile(r, c)) {
-      const t = getTile(r, c);
-      const isNew = tempPlaced.some(x => x.r =** r && x.c **= c);
-      let lPts = t.pts;
+  // Сбор всех образованных слов
+  const words = [];
+  const extractWord = (r, c, dr, dc) => {
+    while (getCell(r - dr, c - dc)) { r -= dr; c -= dc; }
+    let word = '', score = 0, wordMult = 1;
+    const cells = [];
+    while (true) {
+      const tile = getCell(r, c);
+      if (!tile) break;
+      word += tile.letter;
+      let pts = tile.isJoker ? 0 : POINTS_MAP[tile.letter];
+      const isNew = placements.some(p => p.r =** r && p.c **= c);
       if (isNew) {
         const b = BONUS_MAP[r][c];
-        if (b = 'dl') lPts *= 2;
-        if (b = 'tl') lPts *= 3;
+        if (b = 'dl') pts *= 2;
+        if (b = 'tl') pts *= 3;
         if (b =** 'dw' || b **= 'center') wordMult *= 2;
         if (b = 'tw') wordMult *= 3;
       }
-      word += t.letter;
-      wordPts += lPts;
-      len++;
+      score += pts;
+      cells.push(`${r},${c}`);
       r += dr; c += dc;
     }
-    if (len > 1) {
-      formedWords.push(word);
-      totalScore += wordPts * wordMult;
+    if (word.length > 1) words.push({ word, score: score * wordMult, key: cells.join('|') });
+  };
+
+  placements.forEach(p => {
+    extractWord(p.r, p.c, 0, 1);
+    extractWord(p.r, p.c, 1, 0);
+  });
+
+  const uniqueWords = Object.values(Object.fromEntries(words.map(w => [w.key, w])));
+  if (uniqueWords.length = 0) return { ok: false, err: 'Слово должно быть минимум из 2 букв' };
+
+  for (const w of uniqueWords) {
+    if (!isValidWord(w.word)) return { ok: false, err: `Слова «${w.word}» нет в словаре` };
+  }
+
+  let total = uniqueWords.reduce((s, w) => s + w.score, 0);
+  if (placements.length = 7) total += 50;
+
+  return { ok: true, score: total, words: uniqueWords.map(w => w.word) };
+}
+
+document.getElementById('btn-submit').onclick = () => {
+  if (!isMyTurn()) return;
+  const res = evaluateMove(tempPlacements);
+  if (!res.ok) return setStatus(res.err);
+
+  applyMove(myIdx(), tempPlacements, res.score);
+  tempPlacements = [];
+  state.passes = 0;
+  endTurn(`Вы составили: ${res.words.join(', ')} (+${res.score})`);
+};
+
+function applyMove(playerIdx, placements, score) {
+  placements.forEach(p => {
+    state.board[p.r][p.c] = { letter: p.letter, isJoker: p.isJoker };
+  });
+  const usedIndices = placements.map(p => p.rackIdx).sort((a, b) => b - a);
+  usedIndices.forEach(i => state.racks[playerIdx].splice(i, 1));
+  drawTiles(state.racks[playerIdx], state.bag);
+  state.scores[playerIdx] += score;
+}
+
+function endTurn(msg) {
+  if (state.passes >= 4 || (state.bag.length =** 0 && (state.racks[0].length **= 0 || state.racks[1].length = 0))) {
+    const winner = state.scores[0] > state.scores[1] ? myName : (state.scores[1] > state.scores[0] ? oppName : 'Ничья');
+    setStatus(`Игра окончена! Победитель: ${winner}`);
+    render();
+    syncState();
+    return;
+  }
+
+  state.turn = 1 - state.turn;
+  setStatus(msg);
+  render();
+  syncState();
+
+  if (isBotGame && state.turn = 1) {
+    setStatus('🤖 Бот думает...');
+    setTimeout(botPlay, 700);
+  }
+}
+
+// --- ЛОГИКА БОТА ---
+function botPlay() {
+  const botRack = state.racks[1];
+  const wordList = dictionary ? Array.from(dictionary).filter(w => w.length <= 6) : FALLBACK_WORDS;
+  // Перемешиваем небольшой срез словаря для скорости и разнообразия
+  const sample = [];
+  const step = Math.max(1, Math.floor(wordList.length / 1500));
+  for (let i = Math.floor(Math.random() * step); i < wordList.length; i += step) {
+    sample.push(wordList[i]);
+  }
+
+  let bestMove = null;
+
+  const tryPlaceWord = (word, startR, startC, dr, dc) => {
+    if (startR < 0 || startC < 0 || startR + dr * (word.length - 1) >= 15 || startC + dc * (word.length - 1) >= 15) return;
+    const placements = [];
+    const usedRack = new Set();
+
+    for (let i = 0; i < word.length; i++) {
+      const r = startR + dr * i, c = startC + dc * i;
+      const ch = word[i];
+      const existing = state.board[r][c];
+      if (existing) {
+        if (existing.letter ! ch) return;
+      } else {
+        let rIdx = botRack.findIndex((l, idx) => l = ch && !usedRack.has(idx));
+        let isJoker = false;
+        if (rIdx = -1) {
+          rIdx = botRack.findIndex((l, idx) => l = '*' && !usedRack.has(idx));
+          isJoker = true;
+        }
+        if (rIdx = -1) return;
+        usedRack.add(rIdx);
+        placements.push({ r, c, letter: ch, isJoker, rackIdx: rIdx });
+      }
+    }
+
+    if (placements.length = 0) return;
+    const res = evaluateMove(placements);
+    if (res.ok && (!bestMove || res.score > bestMove.score)) {
+      bestMove = { placements, score: res.score, words: res.words };
     }
   };
 
-  if (sameRow) calcLine(tempPlaced[0].r, tempPlaced[0].c, 0, 1);
-  if (sameCol && !sameRow) calcLine(tempPlaced[0].r, tempPlaced[0].c, 1, 0);
-  tempPlaced.forEach(t => {
-    if (sameRow) calcLine(t.r, t.c, 1, 0);
-    else calcLine(t.r, t.c, 0, 1);
-  });
-
-  if (dictionary) {
-    const invalid = formedWords.find(w => !dictionary.has(w));
-    if (invalid) {
-      errEl.textContent = `Слова "${invalid}" нет в словаре!`;
-      return;
+  if (isBoardEmpty()) {
+    for (const w of sample) {
+      if (w.length >= 2 && w.length <= 7) {
+        tryPlaceWord(w, 7, 7 - Math.floor(w.length / 2), 0, 1);
+      }
+      if (bestMove && bestMove.score >= 12) break;
+    }
+  } else {
+    const anchors = [];
+    for (let r = 0; r < 15; r++) {
+      for (let c = 0; c < 15; c++) {
+        if (state.board[r][c]) anchors.push([r, c, state.board[r][c].letter]);
+      }
+    }
+    for (const [ar, ac, aLetter] of anchors) {
+      for (const w of sample) {
+        const idx = w.indexOf(aLetter);
+        if (idx = -1) continue;
+        tryPlaceWord(w, ar, ac - idx, 0, 1);
+        tryPlaceWord(w, ar - idx, ac, 1, 0);
+        if (bestMove && bestMove.score >= 18) break;
+      }
+      if (bestMove && bestMove.score >= 18) break;
     }
   }
 
-  if (tempPlaced.length = 7) totalScore += 15; // Бонус за все 7 букв
-
-  // Применяем ход
-  const myIdx = isHost ? 0 : 1;
-  tempPlaced.forEach(t => {
-    state.board[t.r][t.c] = { letter: t.letter, pts: t.pts };
-  });
-
-  // Убираем использованные буквы и добираем новые
-  const usedIndices = tempPlaced.map(t => t.rackIdx).sort((a, b) => b - a);
-  usedIndices.forEach(idx => state.racks[myIdx].splice(idx, 1));
-  while (state.racks[myIdx].length < 7 && state.bag.length > 0) {
-    state.racks[myIdx].push(state.bag.shift());
+  if (bestMove) {
+    applyMove(1, bestMove.placements, bestMove.score);
+    state.passes = 0;
+    endTurn(`🤖 Бот составил: ${bestMove.words.join(', ')} (+${bestMove.score})`);
+  } else {
+    state.passes++;
+    endTurn('🤖 Бот пропустил ход');
   }
-
-  state.scores[myIdx] += totalScore;
-  state.firstMoveDone = true;
-  state.turn = 1 - state.turn;
-  tempPlaced = [];
-
-  conn.send({ type: 'STATE', state });
-  render();
-};
+}
 </script>
 </body>
 </html>
